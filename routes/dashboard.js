@@ -11,9 +11,10 @@ router.get('/stats', async (req, res) => {
         };
 
         const [totalTables, occupiedTables, reservedTables, pendingBookings, completedOrders] = await Promise.all([
-            count('SELECT COUNT(*) AS total FROM tables'),
-            count("SELECT COUNT(*) AS total FROM tables WHERE status = 'occupied'"),
-            count("SELECT COUNT(*) AS total FROM tables WHERE status = 'reserved'"),
+            count('SELECT COUNT(*) AS total FROM coffee_tables'),
+            count("SELECT COUNT(*) AS total FROM coffee_tables WHERE status = 'occupied'"),
+            // Bàn đã đặt = số bàn có booking đã xác nhận trong hôm nay
+            count("SELECT COUNT(DISTINCT table_id) AS total FROM bookings WHERE status = 'confirmed' AND booking_date = CURDATE()"),
             count("SELECT COUNT(*) AS total FROM bookings WHERE status = 'pending'"),
             count("SELECT COUNT(*) AS total FROM orders WHERE status = 'completed'")
         ]);

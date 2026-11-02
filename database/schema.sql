@@ -1,7 +1,7 @@
 -- Schema thống nhất cho Mộc Coffee (Node.js + MySQL + JWT).
 -- Gộp từ 2 nhánh bị conflict trong schema.sql cũ:
 --   * Giữ nguyên các bảng của nhóm: users, categories, products, orders, order_items (tuần 3)
---   * Thêm `tables` và `bookings` (bản Node) cho đặt bàn / sơ đồ bàn (tuần 5)
+--   * Thêm `coffee_tables` và `bookings` cho đặt bàn / sơ đồ bàn (tuần 5) - cấu trúc chuẩn duy nhất
 --   * Bỏ order_details và invoices (nhánh HEAD): đã được order_items thay thế, code hiện tại không dùng
 -- Chạy: mysql -u <user> -p < database/schema.sql
 
@@ -111,41 +111,133 @@ CREATE TABLE IF NOT EXISTS order_items (
         REFERENCES products(id) ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
--- ===== Tuần 5: bàn và đặt bàn (do Node quản lý) =====
-CREATE TABLE IF NOT EXISTS `tables` (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
-    capacity INT NOT NULL DEFAULT 2,
-    status ENUM('available', 'occupied', 'reserved') NOT NULL DEFAULT 'available'
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+-- ===== Tuần 5: bàn và đặt bàn (cấu trúc CHUẨN, dùng chung cho Node và PHP) =====
+-- Bảng bàn là coffee_tables, bảng đặt bàn là bookings (booking_code, customer_phone, booking_date, booking_time...).
+-- Không còn bảng `tables` kiểu cũ. Máy đang có bookings kiểu cũ (cột `phone`) -> xem database/migrations/.
+CREATE TABLE IF NOT EXISTS coffee_tables (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    table_code VARCHAR(20) NOT NULL UNIQUE,
+    table_name VARCHAR(100) NOT NULL,
+    capacity INT UNSIGNED NOT NULL DEFAULT 2,
+    area VARCHAR(100) NULL,
+    status ENUM(
+        'available',
+        'occupied',
+        'maintenance'
+    ) NOT NULL DEFAULT 'available',
+    created_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS bookings (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    booking_code VARCHAR(30) NOT NULL UNIQUE,
+    table_id INT UNSIGNED NOT NULL,
     customer_name VARCHAR(100) NOT NULL,
-    phone VARCHAR(15) NOT NULL,
-    booking_time DATETIME NOT NULL,
-    number_of_guests INT NOT NULL,
-    table_id INT NULL,
-    status ENUM('pending', 'confirmed', 'cancelled') NOT NULL DEFAULT 'pending',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_bookings_table FOREIGN KEY (table_id) REFERENCES `tables`(id) ON DELETE SET NULL,
+    customer_phone VARCHAR(20) NOT NULL,
+    customer_email VARCHAR(150) NULL,
+    booking_date DATE NOT NULL,
+    booking_time TIME NOT NULL,
+    guest_count INT UNSIGNED NOT NULL,
+    note VARCHAR(300) NULL,
+    status ENUM(
+        'pending',
+        'confirmed',
+        'seated',
+        'completed',
+        'cancelled'
+    ) NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    INDEX idx_bookings_date_time (
+        booking_date,
+        booking_time
+    ),
+
     INDEX idx_bookings_status (status),
-    INDEX idx_bookings_table_time (table_id, booking_time)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
-INSERT INTO `tables` (name, capacity)
-SELECT * FROM (
-    SELECT 'Bàn T01' AS name, 2 AS capacity UNION ALL SELECT 'Bàn T02', 2
-    UNION ALL SELECT 'Bàn T03', 4 UNION ALL SELECT 'Bàn T04', 4
-    UNION ALL SELECT 'Bàn T05', 4 UNION ALL SELECT 'Bàn T06', 6
-    UNION ALL SELECT 'Bàn T07', 6 UNION ALL SELECT 'Bàn T08', 8
-) AS seed
-WHERE NOT EXISTS (SELECT 1 FROM `tables`);
+    CONSTRAINT fk_bookings_table
+        FOREIGN KEY (table_id)
+        REFERENCES coffee_tables(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
--- ===== Nếu DB của bạn đã từng chạy bản PHP (php_booking.sql) =====
--- Bảng bookings của PHP khác cột (booking_code, customer_phone, booking_date...) nên CREATE ở trên sẽ bị bỏ qua.
--- Chạy 2 lệnh này TRƯỚC khi chạy file này để giữ dữ liệu cũ:
---   RENAME TABLE bookings TO bookings_php_backup;
---   INSERT INTO `tables` (name, capacity, status)
---     SELECT table_name, capacity, status FROM coffee_tables WHERE status IN ('available', 'occupied');
--- (chạy riêng lệnh INSERT sau khi bảng `tables` đã được tạo)
+INSERT INTO coffee_tables (
+    table_code,
+    table_name,
+    capacity,
+    area,
+    status
+) VALUES
+    (
+        'T01',
+        'Bàn T01',
+        2,
+        'Tầng trệt',
+        'available'
+    ),
+    (
+        'T02',
+        'Bàn T02',
+        2,
+        'Tầng trệt',
+        'available'
+    ),
+    (
+        'T03',
+        'Bàn T03',
+        4,
+        'Tầng trệt',
+        'available'
+    ),
+    (
+        'T04',
+        'Bàn T04',
+        4,
+        'Tầng trệt',
+        'available'
+    ),
+    (
+        'T05',
+        'Bàn T05',
+        4,
+        'Khu vực cửa sổ',
+        'available'
+    ),
+    (
+        'T06',
+        'Bàn T06',
+        6,
+        'Khu vực cửa sổ',
+        'available'
+    ),
+    (
+        'T07',
+        'Bàn T07',
+        6,
+        'Tầng 1',
+        'available'
+    ),
+    (
+        'T08',
+        'Bàn T08',
+        8,
+        'Tầng 1',
+        'available'
+    )
+ON DUPLICATE KEY UPDATE
+    table_name = VALUES(table_name),
+    capacity = VALUES(capacity),
+    area = VALUES(area);
