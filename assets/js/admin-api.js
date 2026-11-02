@@ -1,8 +1,8 @@
 "use strict";
 
 document.addEventListener("DOMContentLoaded", function () {
-  const API_BASE_URL = "http://localhost:3000/api";
-  const API_ORIGIN = "http://localhost:3000";
+  const API_ORIGIN = window.location.origin;
+  const API_BASE_URL = `${API_ORIGIN}/api`;
   const TOKEN_KEY = "mocCoffeeAdminToken";
   const USER_KEY = "mocCoffeeAdminUser";
   const REMEMBERED_EMAIL_KEY = "mocCoffeeAdminEmail";

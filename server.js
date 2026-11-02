@@ -6,15 +6,8 @@ const {
     verifyToken,
     requireAdmin,
 } = require('./middleware/auth');
-const {
-    getCategories,
-} = require('./backend/src/controllers/category.controller');
-
-const {
-    getProducts,
-    getProductById,
-} = require('./backend/src/controllers/product.controller');
-
+const categoryRoutes = require('./backend/src/routes/category.routes');
+const productRoutes = require('./backend/src/routes/product.routes');
 const orderRoutes = require('./backend/src/routes/order.routes');
 
 const app = express();
@@ -130,9 +123,9 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-app.get('/api/categories', getCategories);
-
-app.get('/api/products', getProducts);
+// Mỗi router tự lo GET công khai, còn thêm/sửa/xóa thì cần admin
+app.use('/api/categories', categoryRoutes);
+app.use('/api/products', productRoutes);
 app.get('/api/admin/me', verifyToken, requireAdmin, (req, res) => {
     res.json({
         success: true,
@@ -140,7 +133,6 @@ app.get('/api/admin/me', verifyToken, requireAdmin, (req, res) => {
     });
 });
 
-app.get('/api/products/:id', getProductById);
 app.use('/api/orders', orderRoutes);
 app.use('/api/auth', require('./routes/auth'));
 app.use(
@@ -162,6 +154,18 @@ app.use((req, res) => {
 
 // Xử lý lỗi chung
 app.use((err, req, res, next) => {
+    // Lỗi upload ảnh (quá 5 MB, sai tên trường...)
+    if (err.name === 'MulterError') {
+        const message = err.code === 'LIMIT_FILE_SIZE'
+            ? 'Ảnh sản phẩm không được vượt quá 5 MB'
+            : 'Lỗi upload: ' + err.message;
+        return res.status(400).json({ success: false, message });
+    }
+    // Sai định dạng ảnh (do upload.middleware.js ném ra)
+    if (err.message === 'Chỉ chấp nhận ảnh JPG, PNG hoặc WEBP') {
+        return res.status(400).json({ success: false, message: err.message });
+    }
+
     if (err.type === 'entity.parse.failed') {
         return res.status(400).json({ message: 'Dữ liệu JSON không hợp lệ!' });
     }
