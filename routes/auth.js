@@ -65,10 +65,14 @@ router.post('/login', async (req, res) => {
             { expiresIn: EXPIRES_IN, algorithm: 'HS256' }
         );
 
+                // Dạng phản hồi chung của toàn bộ API: { success, data }
         res.json({
-            token,
-            expiresIn: EXPIRES_IN,
-            user: { id: user.id, email: user.email, full_name: user.full_name }
+            success: true,
+            data: {
+                token,
+                expiresIn: EXPIRES_IN,
+                user: { id: user.id, email: user.email, full_name: user.full_name, role: user.role }
+            }
         });
     } catch (err) {
         console.error('Lỗi đăng nhập:', err);

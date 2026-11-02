@@ -3,8 +3,7 @@
 document.addEventListener("DOMContentLoaded", function () {
   const API_ORIGIN = window.location.origin;
   const API_BASE_URL = `${API_ORIGIN}/api`;
-  const TOKEN_KEY = "mocCoffeeAdminToken";
-  const USER_KEY = "mocCoffeeAdminUser";
+  const Auth = window.AdminAuth;
   const REMEMBERED_EMAIL_KEY = "mocCoffeeAdminEmail";
   const DEFAULT_PRODUCT_IMAGE =
     "../assets/images/products/default-product.jpg";
@@ -91,33 +90,17 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  // Ba hàm dưới chỉ "nhờ" AdminAuth (admin-auth.js) lưu, đọc, xóa token
   function getToken() {
-    return (
-      sessionStorage.getItem(TOKEN_KEY) ||
-      localStorage.getItem(TOKEN_KEY)
-    );
+    return Auth.getToken();
   }
 
-  function saveAuthentication(token, user, remember) {
-    clearAuthentication();
-
-    const storage = remember ? localStorage : sessionStorage;
-
-    storage.setItem(TOKEN_KEY, token);
-    storage.setItem(USER_KEY, JSON.stringify(user));
-
-    if (remember) {
-      localStorage.setItem(REMEMBERED_EMAIL_KEY, user.email);
-    } else {
-      localStorage.removeItem(REMEMBERED_EMAIL_KEY);
-    }
+  function saveAuthentication(token) {
+    Auth.setToken(token);
   }
 
   function clearAuthentication() {
-    sessionStorage.removeItem(TOKEN_KEY);
-    sessionStorage.removeItem(USER_KEY);
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    Auth.clearToken();
   }
 
   async function apiRequest(
@@ -414,7 +397,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     try {
-      const profileResult = await apiRequest("/auth/me");
+      const profileResult = await apiRequest("/admin/me");
 
       if (profileResult.data.role !== "admin") {
         throw new Error("Tài khoản không có quyền Admin.");

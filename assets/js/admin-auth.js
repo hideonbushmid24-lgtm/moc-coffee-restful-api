@@ -2,7 +2,7 @@
 (function () {
     'use strict';
 
-    var KEY = 'token';
+    var KEY = 'mocCoffeeAdminToken';
 
     function getToken() {
         try { return localStorage.getItem(KEY); } catch (e) { return null; }

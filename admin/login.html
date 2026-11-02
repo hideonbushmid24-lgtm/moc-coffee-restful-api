@@ -370,8 +370,9 @@
             body: JSON.stringify({ email: username, password: password })
           });
           var data = await res.json().catch(function () { return {}; });
-          if (!res.ok || !data.token) throw new Error(data.message || 'Đăng nhập thất bại!');
-          A.setToken(data.token);
+          // Phản hồi dạng chung: { success, data: { token, user } }
+          if (!res.ok || !data.data || !data.data.token) throw new Error(data.message || 'Đăng nhập thất bại!');
+          A.setToken(data.data.token);
           document.getElementById('login-success-alert').classList.remove('d-none');
           location.href = 'dashboard.html';
         } catch (err) {
