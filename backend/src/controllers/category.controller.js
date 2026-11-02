@@ -1,4 +1,5 @@
-const { pool } = require("../config/db");
+// Dùng chung kết nối DB của server chính
+const pool = require("../../../config/db");
 
 const createSlug = (value) => {
     return value

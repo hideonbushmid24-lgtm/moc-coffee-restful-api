@@ -1,5 +1,6 @@
 const crypto = require("crypto");
-const { pool } = require("../config/db");
+// Dùng chung kết nối DB của server chính
+const pool = require("../../../config/db");
 
 const SIZE_PRICES = {
     S: -5000,
