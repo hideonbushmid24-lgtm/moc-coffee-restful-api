@@ -52,6 +52,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const bookingCodeElement =
     document.querySelector("#booking-code");
 
+  const bookingErrorElement =
+    document.querySelector("#booking-error");
+
   const submitButton = bookingForm.querySelector(
     'button[type="submit"]'
   );
@@ -95,18 +98,6 @@ document.addEventListener("DOMContentLoaded", function () {
     return `${parts[2]}/${parts[1]}/${parts[0]}`;
   }
 
-  function generateBookingCode() {
-    const timePart = Date.now()
-      .toString()
-      .slice(-6);
-
-    const randomPart = Math.floor(
-      Math.random() * 90 + 10
-    );
-
-    return `BK${timePart}${randomPart}`;
-  }
-
   function getSelectedArea() {
     return document.querySelector(
       'input[name="bookingArea"]:checked'
@@ -117,6 +108,31 @@ document.addEventListener("DOMContentLoaded", function () {
     return document.querySelector(
       'input[name="tableId"]:checked'
     );
+  }
+
+    // Hiện / ẩn thông báo lỗi trả về từ server (trùng giờ, sai dữ liệu...)
+  function showBookingError(message) {
+    bookingErrorElement.textContent = message;
+    bookingErrorElement.classList.remove("d-none");
+    bookingErrorElement.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  }
+
+  function hideBookingError() {
+    bookingErrorElement.classList.add("d-none");
+    bookingErrorElement.textContent = "";
+  }
+
+  // Khóa nút gửi khi đang chờ server để khách không bấm 2 lần
+  const submitButtonHtml = submitButton.innerHTML;
+
+  function setSubmitting(isSubmitting) {
+    submitButton.disabled = isSubmitting;
+    submitButton.innerHTML = isSubmitting
+      ? "Đang gửi..."
+      : submitButtonHtml;
   }
 
   function getCart() {
@@ -590,37 +606,10 @@ document.addEventListener("DOMContentLoaded", function () {
   ========================================================= */
 
   function saveBooking(bookingData) {
+    // Dữ liệu thật đã nằm trong database; chỉ nhớ booking gần nhất để trang success.html hiển thị
     localStorage.setItem(
       "mocCoffeeLastBooking",
       JSON.stringify(bookingData)
-    );
-
-    /*
-     * Lưu danh sách nhiều lần đặt bàn để dùng cho bản demo.
-     */
-    let bookings = [];
-
-    try {
-      const storedBookings = localStorage.getItem(
-        "mocCoffeeBookings"
-      );
-
-      bookings = storedBookings
-        ? JSON.parse(storedBookings)
-        : [];
-
-      if (!Array.isArray(bookings)) {
-        bookings = [];
-      }
-    } catch (error) {
-      bookings = [];
-    }
-
-    bookings.push(bookingData);
-
-    localStorage.setItem(
-      "mocCoffeeBookings",
-      JSON.stringify(bookings)
     );
 
     localStorage.setItem(
@@ -633,9 +622,7 @@ document.addEventListener("DOMContentLoaded", function () {
      10. XỬ LÝ GỬI FORM
   ========================================================= */
 
-  bookingForm.addEventListener(
-    "submit",
-    function (event) {
+  bookingForm.addEventListener("submit", async function (event) {
       event.preventDefault();
       event.stopPropagation();
 
@@ -666,7 +653,37 @@ document.addEventListener("DOMContentLoaded", function () {
       const selectedArea = getSelectedArea();
       const selectedTable = getSelectedTable();
 
-      const bookingCode = generateBookingCode();
+      // Gửi lên server: server kiểm tra trùng giờ và tự tạo mã đặt bàn
+      hideBookingError();
+      setSubmitting(true);
+
+      let savedBooking;
+
+      try {
+        savedBooking = await window.MocCoffeeApi.createBooking({
+          customer_name: customerNameInput.value.trim(),
+          customer_phone: customerPhoneInput.value.trim(),
+          customer_email: customerEmailInput.value.trim(),
+          booking_date: bookingDateInput.value,
+          booking_time: bookingTimeSelect.value,
+          guest_count: Number(guestCountSelect.value),
+          table_code: selectedTable.value,
+          note: bookingNoteInput.value.trim(),
+        });
+      } catch (error) {
+        // TypeError = không gọi được server (mất mạng, server chưa chạy)
+        showBookingError(
+          error.name === "TypeError"
+            ? "Không kết nối được máy chủ. Vui lòng thử lại sau."
+            : error.message
+        );
+        setSubmitting(false);
+        return;
+      }
+
+      setSubmitting(false);
+
+      const bookingCode = savedBooking.booking_code;
 
       const bookingData = {
         id: bookingCode,

@@ -117,6 +117,16 @@
     return result.data;
   }
 
+  // Gửi yêu cầu đặt bàn lên server
+  async function createBooking(booking) {
+    const result = await request("/bookings", {
+      method: "POST",
+      body: booking,
+    });
+
+    return result.data;
+  }
+
   window.MocCoffeeApi = {
     API_ORIGIN,
     API_BASE_URL,
@@ -126,5 +136,6 @@
     getProducts,
     getProductById,
     createOrder,
+    createBooking,
   };
 })();
