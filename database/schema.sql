@@ -5,6 +5,8 @@
 --   * Bỏ order_details và invoices (nhánh HEAD): đã được order_items thay thế, code hiện tại không dùng
 -- Chạy: mysql -u <user> -p < database/schema.sql
 
+SET NAMES utf8mb4;
+
 CREATE DATABASE IF NOT EXISTS moc_coffee
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;

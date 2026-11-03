@@ -23,6 +23,12 @@ document.addEventListener('DOMContentLoaded', function () {
     var resetBtn = A.fresh('reset-invoice-filter');
     var all = [];
 
+    // Xóa các hàng dữ liệu mẫu trong HTML để không hiện số liệu giả khi chưa tải được dữ liệu thật
+    function showMessage(text, cls) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center ' + cls + ' py-4">' + text + '</td></tr>';
+    }
+    showMessage('Đang tải...', 'text-secondary');
+
     // ----- Dọn phần giao diện mẫu không còn phù hợp -----
     var createBtn = document.getElementById('open-create-invoice-button');
     if (createBtn) createBtn.remove(); // hóa đơn sinh tự động từ đơn hàng
@@ -139,6 +145,7 @@ document.addEventListener('DOMContentLoaded', function () {
             render();
         } catch (err) {
             console.error('Lỗi tải danh sách hóa đơn:', err);
+            showMessage('Không tải được hóa đơn. Vui lòng thử lại.', 'text-danger');
             A.toast(err.message, 'error');
         }
     }
