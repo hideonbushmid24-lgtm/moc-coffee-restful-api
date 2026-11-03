@@ -50,6 +50,12 @@ document.addEventListener('DOMContentLoaded', function () {
     var all = [];
     var detailOrder = null;
 
+    // Xóa các hàng dữ liệu mẫu trong HTML để không hiện số liệu giả khi chưa tải được dữ liệu thật
+    function showMessage(text, cls) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center ' + cls + ' py-4">' + text + '</td></tr>';
+    }
+    showMessage('Đang tải...', 'text-secondary');
+
     // ----- Dọn phần giao diện mẫu không còn phù hợp -----
     var createBtn = document.getElementById('open-create-order-button');
     if (createBtn) createBtn.remove(); // khách tự gọi món; admin chỉ xử lý đơn
@@ -191,6 +197,7 @@ document.addEventListener('DOMContentLoaded', function () {
             render();
         } catch (err) {
             console.error('Lỗi tải danh sách đơn hàng:', err);
+            showMessage('Không tải được đơn hàng. Vui lòng thử lại.', 'text-danger');
             A.toast(err.message, 'error');
         }
     }

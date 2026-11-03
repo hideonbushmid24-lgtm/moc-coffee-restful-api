@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var STATUS = {
         pending: { text: 'Chờ xác nhận', cls: 'warning' },
         confirmed: { text: 'Đã xác nhận', cls: 'success' },
+        seated: { text: 'Đang phục vụ', cls: 'primary' },
+        completed: { text: 'Hoàn thành', cls: 'secondary' },
         cancelled: { text: 'Đã hủy', cls: 'danger' }
     };
 
@@ -32,10 +34,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (printBtn) printBtn.addEventListener('click', function () { window.print(); });
 
     function pad(n) { return String(n).padStart(2, '0'); }
-    function fmt(v) {
-        var d = new Date(v);
-        if (isNaN(d)) return { date: '—', time: '' };
-        return { date: pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear(), time: pad(d.getHours()) + ':' + pad(d.getMinutes()) };
+    function fmt(b) {
+        var p = String(b.booking_date || '').split('-');
+        if (p.length !== 3) return { date: '—', time: '' };
+        return { date: p[2] + '/' + p[1] + '/' + p[0], time: String(b.booking_time || '').slice(0, 5) };
     }
     function ymd(v) {
         var d = new Date(v);
@@ -47,14 +49,16 @@ document.addEventListener('DOMContentLoaded', function () {
         var btn = function (act, cls, label) {
             return '<button type="button" class="btn btn-sm btn-outline-' + cls + ' me-1" data-act="' + act + '" data-id="' + id + '">' + label + '</button>';
         };
+        // Luồng của API: chờ xác nhận -> đã xác nhận -> đang phục vụ -> hoàn thành (hủy được trước khi nhận khách)
         if (b.status === 'pending') return btn('confirmed', 'success', 'Xác nhận') + btn('cancelled', 'danger', 'Hủy');
-        if (b.status === 'confirmed') return btn('cancelled', 'danger', 'Hủy');
-        return btn('pending', 'secondary', 'Khôi phục');
+        if (b.status === 'confirmed') return btn('seated', 'primary', 'Nhận khách') + btn('cancelled', 'danger', 'Hủy');
+        if (b.status === 'seated') return btn('completed', 'success', 'Hoàn thành');
+        return '<span class="text-secondary">—</span>';
     }
 
     function row(b) {
         var st = STATUS[b.status] || { text: b.status, cls: 'secondary' };
-        var t = fmt(b.booking_time);
+        var t = fmt(b);
         return '<tr class="booking-row">' +
             '<td class="ps-4"><strong>#' + A.esc(b.id) + '</strong></td>' +
             '<td><strong>' + A.esc(b.customer_name) + '</strong><small class="d-block text-secondary">' + A.esc(b.phone) + '</small></td>' +
@@ -68,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function stats() {
         var today = ymd(new Date());
         var set = function (id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
-        set('today-booking-count', all.filter(function (b) { return ymd(b.booking_time) === today; }).length);
+        set('today-booking-count', all.filter(function (b) { return b.booking_date === today; }).length);
         ['pending', 'confirmed', 'cancelled'].forEach(function (s) {
             set(s + '-booking-count', all.filter(function (b) { return b.status === s; }).length);
         });
@@ -80,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var s = statusFilter && statusFilter.value;
         var list = all.filter(function (b) {
             if (s && s !== 'all' && b.status !== s) return false;
-            if (d && ymd(b.booking_time) !== d) return false;
+            if (d && b.booking_date !== d) return false;
             if (q && (String(b.id) + ' ' + b.customer_name + ' ' + b.phone).toLowerCase().indexOf(q) === -1) return false;
             return true;
         });

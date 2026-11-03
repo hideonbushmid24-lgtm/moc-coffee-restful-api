@@ -4,6 +4,7 @@
 --   * Thêm `coffee_tables` và `bookings` cho đặt bàn / sơ đồ bàn (tuần 5) - cấu trúc chuẩn duy nhất
 --   * Bỏ order_details và invoices (nhánh HEAD): đã được order_items thay thế, code hiện tại không dùng
 -- Chạy: mysql -u <user> -p < database/schema.sql
+
 SET NAMES utf8mb4;
 
 CREATE DATABASE IF NOT EXISTS moc_coffee
