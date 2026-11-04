@@ -134,5 +134,9 @@ document.addEventListener('DOMContentLoaded', function () {
         render();
     });
 
-    load();
+        load();
+
+    // Tự làm mới để đơn khách vừa đặt hiện ra mà không cần F5
+    setInterval(function () { if (!document.hidden) load(); }, 20000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) load(); });
 });

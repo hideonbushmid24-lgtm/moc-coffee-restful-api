@@ -6,6 +6,7 @@ const {
     verifyToken,
     requireAdmin,
 } = require('../middleware/auth');
+const { dbErrorMessage } = require('../middleware/dbError');
 
 const VALID_STATUS = ['pending', 'confirmed', 'cancelled'];
 const BOOKING_FILTER_STATUS = [
@@ -199,12 +200,17 @@ router.post('/', async (req, res) => {
              FROM bookings
              WHERE table_id = ?
                AND status IN ('pending', 'confirmed', 'seated')
+               AND booking_date BETWEEN ? AND ?
                AND TIMESTAMP(booking_date, booking_time) < ?
                AND TIMESTAMP(booking_date, booking_time) > ?
              LIMIT 1
              FOR UPDATE`,
             [
                 table.id,
+                // Lọc thêm theo ngày để dùng index (table_id, booking_date, booking_time)
+                // thay vì quét mọi booking của bàn.
+                vnDate(startMs - SLOT_MS),
+                vnDate(startMs + SLOT_MS),
                 vnSqlTime(startMs + SLOT_MS),
                 vnSqlTime(startMs - SLOT_MS),
             ]
@@ -363,19 +369,27 @@ router.get('/', verifyToken, requireAdmin, async (req, res) => {
             params.push(status);
         }
 
-        sql += ' ORDER BY b.created_at DESC, b.id DESC';
+        // Giới hạn số dòng trả về (mặc định 500, tối đa 1000) để danh sách không phình vô hạn theo thời gian.
+        // Vẫn trả về mảng như cũ nên giao diện không phải sửa. Dùng ?limit= và ?offset= nếu cần xem thêm.
+        const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 500, 1), 1000);
+        const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
 
-        const [bookings] = await db.execute(sql, params);
+        sql += ' ORDER BY b.created_at DESC, b.id DESC LIMIT ? OFFSET ?';
+        params.push(limit, offset);
+
+        // dùng query (không phải execute) vì LIMIT ? OFFSET ? với prepared statement dễ lỗi ở một số bản MySQL
+        const [bookings] = await db.query(sql, params);
 
         res.json(bookings);
     } catch (error) {
-        console.error('Lỗi lấy danh sách booking:', error.code);
+        console.error('Lỗi lấy danh sách booking:', error.code, error.sqlMessage || error.message);
 
         res.status(500).json({
-            message: 'Không thể lấy danh sách đặt bàn!',
+            message: dbErrorMessage(error, 'Không thể lấy danh sách đặt bàn!'),
         });
     }
 });
+
 
 // ===== Duyệt / hủy đơn đặt bàn (admin) =====
 router.patch('/:id/status', verifyToken, requireAdmin, async (req, res) => {
@@ -532,6 +546,7 @@ router.patch('/:id/status', verifyToken, requireAdmin, async (req, res) => {
                      WHERE table_id = ?
                        AND id <> ?
                        AND status IN ('pending', 'confirmed', 'seated')
+                       AND booking_date BETWEEN ? AND ?
                        AND TIMESTAMP(booking_date, booking_time) < ?
                        AND TIMESTAMP(booking_date, booking_time) > ?
                      LIMIT 1
@@ -539,6 +554,8 @@ router.patch('/:id/status', verifyToken, requireAdmin, async (req, res) => {
                     [
                         tableId,
                         id,
+                        sqlVnTime(startMs - durationMs).slice(0, 10),
+                        sqlVnTime(startMs + durationMs).slice(0, 10),
                         sqlVnTime(startMs + durationMs),
                         sqlVnTime(startMs - durationMs),
                     ]

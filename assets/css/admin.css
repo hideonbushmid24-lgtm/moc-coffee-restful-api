@@ -1401,3 +1401,38 @@ body.admin-body {
     background-color: #ffffff;
   }
 }
+
+/* ===== In hóa đơn / chi tiết đơn: khi đang mở một cửa sổ chi tiết thì CHỈ in cửa sổ đó ===== */
+@media print {
+  body.modal-open > *:not(.modal) {
+    display: none !important;
+  }
+
+  body.modal-open .modal:not(.show),
+  body.modal-open .modal-backdrop,
+  body.modal-open .modal-footer,
+  body.modal-open .modal-header .btn-close {
+    display: none !important;
+  }
+
+  body.modal-open .modal.show {
+    position: static !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+
+  body.modal-open .modal-dialog {
+    max-width: 100% !important;
+    margin: 0 !important;
+    transform: none !important;
+  }
+
+  body.modal-open .modal-content {
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  body.modal-open .modal-body {
+    overflow: visible !important;
+  }
+}

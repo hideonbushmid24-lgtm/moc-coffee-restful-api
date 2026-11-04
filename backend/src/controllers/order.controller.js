@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 // Dùng chung kết nối DB của server chính
 const pool = require("../../../config/db");
+const { dbErrorMessage } = require("../../../middleware/dbError");
 
 const SIZE_PRICES = {
     S: -5000,
@@ -177,19 +178,17 @@ const createOrder = async (req, res) => {
         });
     }
 
-    const order = validation.value;
+        const order = validation.value;
     let connection;
 
     try {
-        connection = await pool.getConnection();
-        await connection.beginTransaction();
-
+        // Các truy vấn chỉ đọc làm TRƯỚC khi mở transaction để giữ kết nối/khóa trong thời gian ngắn nhất.
         const productIds = [
             ...new Set(order.items.map((item) => item.productId)),
         ];
         const placeholders = productIds.map(() => "?").join(", ");
 
-        const [productRows] = await connection.execute(
+        const [productRows] = await pool.execute(
             `SELECT
                 p.id,
                 p.name,
@@ -208,16 +207,37 @@ const createOrder = async (req, res) => {
             productRows.map((product) => [
                 Number(product.id),
                 product,
-            ])
+                ])
         );
 
         if (productMap.size !== productIds.length) {
-            await connection.rollback();
-
             return res.status(400).json({
                 success: false,
                 message: "Có sản phẩm không tồn tại hoặc đã ngừng bán",
             });
+        }
+
+        // Đơn tại bàn: bàn phải có thật và không đang bảo trì
+        // (tránh ai đó gửi mã bàn bậy làm kẹt thao tác đổi trạng thái bàn ở trang admin)
+        if (order.orderType === "at_table") {
+            const [tableRows] = await pool.execute(
+                "SELECT status FROM coffee_tables WHERE table_code = ? LIMIT 1",
+                [order.tableCode]
+            );
+
+            if (!tableRows.length) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Mã bàn không tồn tại",
+                });
+            }
+
+            if (tableRows[0].status === "maintenance") {
+                return res.status(409).json({
+                    success: false,
+                    message: "Bàn đang bảo trì, vui lòng chọn bàn khác",
+                });
+            }
         }
 
         const calculatedItems = order.items.map((item) => {
@@ -261,6 +281,9 @@ const createOrder = async (req, res) => {
             : "pending";
         const orderCode = createOrderCode();
 
+        connection = await pool.getConnection();
+        await connection.beginTransaction();
+
         const [orderResult] = await connection.execute(
             `INSERT INTO orders (
                 order_code,
@@ -298,42 +321,44 @@ const createOrder = async (req, res) => {
             ]
         );
 
-        for (const item of calculatedItems) {
-            await connection.execute(
-                `INSERT INTO order_items (
-                    order_id,
-                    product_id,
-                    product_name,
-                    product_image,
-                    unit_price,
-                    quantity,
-                    line_total,
-                    size,
-                    sugar_level,
-                    ice_level,
-                    toppings,
-                    note
-                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [
-                    orderResult.insertId,
-                    item.productId,
-                    item.productName,
-                    item.productImage,
-                    item.unitPrice,
-                    item.quantity,
-                    item.lineTotal,
-                    item.size,
-                    item.sugarLevel,
-                    item.iceLevel,
-                    JSON.stringify(item.toppings),
-                    item.note,
-                ]
-            );
-        }
+        // Thêm TẤT CẢ món bằng 1 câu INSERT thay vì 1 câu cho mỗi món
+        const itemRows = calculatedItems.map((item) => [
+            orderResult.insertId,
+            item.productId,
+            item.productName,
+            item.productImage,
+            item.unitPrice,
+            item.quantity,
+            item.lineTotal,
+            item.size,
+            item.sugarLevel,
+            item.iceLevel,
+            JSON.stringify(item.toppings),
+            item.note,
+        ]);
+
+        await connection.query(
+            `INSERT INTO order_items (
+                order_id,
+                product_id,
+                product_name,
+                product_image,
+                unit_price,
+                quantity,
+                line_total,
+                size,
+                sugar_level,
+                ice_level,
+                toppings,
+                note
+             ) VALUES ?`,
+            [itemRows]
+        );
 
         await connection.commit();
 
         return res.status(201).json({
+
             success: true,
             message: "Tạo đơn hàng thành công",
             data: {
@@ -376,14 +401,18 @@ const createOrder = async (req, res) => {
         });
     } catch (error) {
         if (connection) {
-            await connection.rollback();
+            try {
+                await connection.rollback();
+            } catch (rollbackError){
+                console.error("Lỗi rollback đơn hàng:", rollbackError.code);
+            }
         }
 
         console.error("Lỗi tạo đơn hàng:", error);
 
         return res.status(500).json({
             success: false,
-            message: "Lỗi máy chủ khi tạo đơn hàng",
+            message: dbErrorMessage(error, "Lỗi máy chủ khi tạo đơn hàng"),
         });
     } finally {
         connection?.release();

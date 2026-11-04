@@ -4,11 +4,22 @@
 //   - xác nhận thanh toán
 // (API khách đặt món nằm ở order.controller.js)
 const pool = require("../../../config/db");
+const { dbErrorMessage } = require("../../../middleware/dbError");
 
 // ===== Hằng số =====
 const ORDER_STATUSES = ["pending", "confirmed", "preparing", "ready", "completed", "cancelled"];
 const PAYMENT_STATUSES = ["pending", "pending_verification", "paid", "failed", "refunded"];
 const ORDER_TYPES = ["at_table", "takeaway"];
+const PAYMENT_METHODS = ["cash", "bank_transfer"];
+
+// Trạng thái hóa đơn = suy ra từ đơn (chỉ dùng chuỗi có sẵn, không ghép dữ liệu người dùng)
+const INVOICE_STATUS_SQL = {
+    cancelled: "o.status = 'cancelled'",
+    paid: "o.status <> 'cancelled' AND o.payment_status = 'paid'",
+    failed: "o.status <> 'cancelled' AND o.payment_status = 'failed'",
+    refunded: "o.status <> 'cancelled' AND o.payment_status = 'refunded'",
+    pending: "o.status <> 'cancelled' AND o.payment_status IN ('pending', 'pending_verification')",
+};
 
 const STATUS_TEXT = {
     pending: "Đơn mới",
@@ -98,7 +109,36 @@ const getOrders = async (req, res) => {
     const params = [];
 
     if (status) {
-        if (!ORDER_STATUSES.includes(status)) return sendError(res, 400, "Trạng thái đơn không hợp lệ");
+        // Cho phép nhiều trạng thái cách nhau bằng dấu phẩy, ví dụ ?status=confirmed,preparing
+        const list = String(status).split(",").map((item) => item.trim()).filter(Boolean);
+        if (!list.length || list.some((item) => !ORDER_STATUSES.includes(item))) {
+            return sendError(res, 400, "Trạng thái đơn không hợp lệ");
+        }
+        conditions.push(`o.status IN (${list.map(() => "?").join(", ")})`);
+        params.push(...list);
+    }
+
+    // ?awaiting_payment=1 : đơn chưa thanh toán và chưa hủy (tab "Chờ thanh toán")
+    if (req.query.awaiting_payment === "1") {
+        conditions.push("o.payment_status IN ('pending', 'pending_verification') AND o.status <> 'cancelled'");
+    }
+
+    // ?payment_method=cash|bank_transfer
+    if (req.query.payment_method) {
+        if (!PAYMENT_METHODS.includes(req.query.payment_method)) return sendError(res, 400, "Phương thức thanh toán không hợp lệ");
+        conditions.push("o.payment_method = ?");
+        params.push(req.query.payment_method);
+    }
+
+    // ?invoice_status=pending|paid|cancelled|failed|refunded : trạng thái hóa đơn suy ra từ đơn
+    if (req.query.invoice_status) {
+        const clause = INVOICE_STATUS_SQL[req.query.invoice_status];
+        if (!clause) return sendError(res, 400, "Trạng thái hóa đơn không hợp lệ");
+        conditions.push(clause);
+    }
+
+    if (payment_status) {
+        if (!PAYMENT_STATUSES.includes(payment_status)) return sendError(res, 400, "Trạng thái thanh toán không hợp lệ");
         conditions.push("o.status = ?");
         params.push(status);
     }
@@ -117,47 +157,76 @@ const getOrders = async (req, res) => {
 
     if (date) {
         if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return sendError(res, 400, "Ngày phải có dạng YYYY-MM-DD");
-        conditions.push("DATE(o.created_at) = ?");
-        params.push(date);
+        // Dùng khoảng thời gian thay vì DATE(cột) để MySQL dùng được index idx_orders_created_at
+        conditions.push("o.created_at >= ? AND o.created_at < ? + INTERVAL 1 DAY");
+        params.push(date, date);
+    }
+
+    // Khoảng ngày cho trang hóa đơn: ?date_from=YYYY-MM-DD&date_to=YYYY-MM-DD
+    const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+    if (req.query.date_from) {
+        if (!DATE_RE.test(req.query.date_from)) return sendError(res, 400, "Ngày phải có dạng YYYY-MM-DD");
+        conditions.push("o.created_at >= ?");
+        params.push(req.query.date_from);
+    }
+    if (req.query.date_to) {
+        if (!DATE_RE.test(req.query.date_to)) return sendError(res, 400, "Ngày phải có dạng YYYY-MM-DD");
+        conditions.push("o.created_at < ? + INTERVAL 1 DAY");
+        params.push(req.query.date_to);
     }
 
     if (q) {
-        const keyword = `%${String(q).trim().slice(0, 50)}%`;
-        conditions.push("(o.order_code LIKE ? OR o.customer_name LIKE ? OR o.customer_phone LIKE ? OR o.table_code LIKE ?)");
+        const keyword = `%${String(q).trim().slice(0, 50).replace(/[\\%_]/g, "\\$&")}%`;
+        const invoiceMatch = /^hd0*(\d+)$/i.exec(String(q).trim()); // gõ "HD0012" thì tìm đơn id = 12
+        conditions.push("(o.order_code LIKE ? OR o.customer_name LIKE ? OR o.customer_phone LIKE ? OR o.table_code LIKE ?" + (invoiceMatch ? " OR o.id = ?" : "") + ")");
         params.push(keyword, keyword, keyword, keyword);
+        if (invoiceMatch) params.push(Number(invoiceMatch[1]));
     }
 
     const orderBy = SORTS[sort] || SORTS.newest;
-    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 1), 200);
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 200);
     const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
     const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
     try {
-        const [rows] = await pool.query(
-            `SELECT o.*, COALESCE(SUM(oi.quantity), 0) AS item_count
-               FROM orders o
-               LEFT JOIN order_items oi ON oi.order_id = o.id
-               ${where}
-              GROUP BY o.id
-              ORDER BY ${orderBy}
-              LIMIT ? OFFSET ?`,
-            [...params, limit, (page - 1) * limit]
-        );
-
-        const [[totalRow]] = await pool.query(
-            `SELECT COUNT(*) AS total FROM orders o ${where}`,
-            params
-        );
-
-        // Số liệu cho các thẻ thống kê đầu trang (tính trên tất cả đơn, không phụ thuộc bộ lọc)
-        const [[summary]] = await pool.query(
-            `SELECT
-                SUM(DATE(created_at) = CURDATE()) AS today_orders,
-                SUM(status = 'pending') AS pending_orders,
-                SUM(status IN ('confirmed', 'preparing')) AS preparing_orders,
-                SUM(payment_status IN ('pending', 'pending_verification') AND status <> 'cancelled') AS awaiting_payment
-               FROM orders`
-        );
+        // 3 truy vấn độc lập -> chạy song song thay vì chờ lần lượt.
+        // item_count dùng subquery nên chỉ tính cho đúng các dòng của trang hiện tại
+        // (trước đây JOIN + GROUP BY trên toàn bộ đơn rồi mới LIMIT).
+        const [[rows], [[totalRow]], [[summary]]] = await Promise.all([
+            pool.query(
+                `SELECT o.*,
+                        (SELECT COALESCE(SUM(oi.quantity), 0)
+                           FROM order_items oi
+                          WHERE oi.order_id = o.id) AS item_count
+                   FROM orders o
+                   ${where}
+                  ORDER BY ${orderBy}
+                  LIMIT ? OFFSET ?`,
+                [...params, limit, (page - 1) * limit]
+            ),
+            pool.query(
+                `SELECT COUNT(*) AS total FROM orders o ${where}`,
+                params
+            ),
+            // Số liệu cho các thẻ thống kê đầu trang (tính trên tất cả đơn, không phụ thuộc bộ lọc)
+            pool.query(
+                `SELECT
+                    COUNT(*) AS all_orders,
+                    SUM(created_at >= CURDATE() AND created_at < CURDATE() + INTERVAL 1 DAY) AS today_orders,
+                    SUM(status = 'pending') AS pending_orders,
+                    SUM(status IN ('confirmed', 'preparing')) AS preparing_orders,
+                    SUM(status = 'ready') AS ready_orders,
+                    SUM(status = 'completed') AS completed_orders,
+                    SUM(status = 'cancelled') AS cancelled_orders,
+                    SUM(payment_status IN ('pending', 'pending_verification') AND status <> 'cancelled') AS awaiting_payment,
+                    SUM(payment_status = 'paid' AND status <> 'cancelled') AS paid_invoices,
+                    SUM(status <> 'cancelled' AND created_at >= CURDATE() AND created_at < CURDATE() + INTERVAL 1 DAY) AS today_invoices,
+                    COALESCE(SUM(CASE WHEN payment_status = 'paid' AND status <> 'cancelled'
+                                      AND created_at >= CURDATE() AND created_at < CURDATE() + INTERVAL 1 DAY
+                                 THEN total_amount END), 0) AS today_revenue
+                   FROM orders`
+            ),
+        ]);
 
         return res.json({
             success: true,
@@ -165,17 +234,15 @@ const getOrders = async (req, res) => {
             total: totalRow.total,
             page,
             limit,
-            summary: {
-                today_orders: Number(summary.today_orders || 0),
-                pending_orders: Number(summary.pending_orders || 0),
-                preparing_orders: Number(summary.preparing_orders || 0),
-                awaiting_payment: Number(summary.awaiting_payment || 0),
-            },
+            total_pages: Math.max(1, Math.ceil(totalRow.total / limit)),
+            summary: Object.fromEntries(
+                Object.entries(summary).map(([key, value]) => [key, Number(value || 0)])
+            ),
             data: rows.map((row) => ({ ...formatOrder(row), item_count: Number(row.item_count) })),
         });
     } catch (error) {
         console.error("Lỗi lấy danh sách đơn hàng:", error);
-        return sendError(res, 500, "Lỗi máy chủ khi lấy danh sách đơn hàng");
+        return sendError(res, 500, dbErrorMessage(error, "Lỗi máy chủ khi lấy danh sách đơn hàng"));
     }
 };
 

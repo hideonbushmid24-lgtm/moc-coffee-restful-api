@@ -5,6 +5,7 @@ const {
     verifyToken,
     requireAdmin,
 } = require('../middleware/auth');
+const { dbErrorMessage } = require('../middleware/dbError');
 
 router.get('/', async (req, res) => {
     try {
@@ -23,10 +24,10 @@ router.get('/', async (req, res) => {
 
         res.json(tables);
     } catch (error) {
-        console.error('Lỗi lấy danh sách bàn:', error.code);
+        console.error('Lỗi lấy danh sách bàn:', error.code, error.sqlMessage || error.message);
 
         res.status(500).json({
-            message: 'Lỗi truy vấn cơ sở dữ liệu!',
+            message: dbErrorMessage(error, 'Lỗi truy vấn cơ sở dữ liệu!'),
         });
     }
 });
@@ -150,11 +151,13 @@ router.patch('/:id/status', verifyToken, requireAdmin, async (req, res) => {
                     FROM bookings
                     WHERE table_id = ?
                       AND status IN ('pending', 'confirmed')
+                      AND booking_date >= ?
                       AND TIMESTAMP(booking_date, booking_time) > ?
                 `;
 
                 const params = [
                     id,
+                    sqlVnTime(now - durationMs).slice(0, 10), // lọc ngày trước để dùng index
                     sqlVnTime(now - durationMs),
                 ];
 

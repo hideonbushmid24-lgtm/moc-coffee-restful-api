@@ -434,7 +434,8 @@ document.addEventListener("DOMContentLoaded", function () {
         label?.classList.add("unavailable");
 
         if (smallElement) {
-          smallElement.textContent = "Đã đặt";
+          smallElement.textContent =
+            radio.dataset.disabledLabel || "Đã đặt";
         }
 
         return;
@@ -778,6 +779,75 @@ document.addEventListener("DOMContentLoaded", function () {
   );
 
   /* =========================================================
+     10b. LẤY DANH SÁCH BÀN TỪ API
+     Tên bàn, sức chứa và việc bàn có đang bảo trì hay không
+     lấy từ GET /api/tables. Nếu gọi API lỗi thì giữ dữ liệu
+     mặc định ghi sẵn trong HTML.
+     Chỉ bàn "bảo trì" bị khóa; bàn "occupied" (đang có khách)
+     vẫn đặt được cho giờ khác, giống quy tắc của server.
+  ========================================================= */
+
+  async function loadTablesFromApi() {
+    try {
+      const response = await fetch("/api/tables");
+
+      if (!response.ok) {
+        throw new Error("Không tải được danh sách bàn");
+      }
+
+      const tables = await response.json();
+
+      if (!Array.isArray(tables)) {
+        return;
+      }
+
+      tables.forEach(function (table) {
+        const radio = Array.from(tableRadios).find(
+          function (item) {
+            return item.value === table.table_code;
+          }
+        );
+
+        if (!radio) {
+          return;
+        }
+
+        const label = document.querySelector(
+          `label[for="${radio.id}"]`
+        );
+
+        const underMaintenance =
+          table.status === "maintenance";
+
+        radio.dataset.capacity = String(table.capacity);
+        radio.dataset.name = table.table_name;
+        radio.dataset.originalDisabled =
+          underMaintenance ? "true" : "false";
+        radio.dataset.disabledLabel = "Đang bảo trì";
+        radio.dataset.originalLabel =
+          `${table.capacity} người`;
+
+        const nameElement = label?.querySelector("strong");
+
+        if (nameElement) {
+          nameElement.textContent = table.table_name;
+        }
+
+        if (underMaintenance && radio.checked) {
+          radio.checked = false;
+        }
+      });
+
+      filterAvailableTables();
+    } catch (error) {
+      console.warn(
+        "Dùng danh sách bàn mặc định:",
+        error.message
+      );
+    }
+  }
+
+  /* =========================================================
      11. KHỞI TẠO TRANG
   ========================================================= */
 
@@ -785,6 +855,7 @@ document.addEventListener("DOMContentLoaded", function () {
   updateAvailableTimes();
   filterAvailableTables();
   updateBookingSummary();
+  loadTablesFromApi();
 
   /*
    * Tự động chọn ngày hiện tại nếu quán vẫn còn giờ phục vụ.

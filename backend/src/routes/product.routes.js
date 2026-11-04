@@ -17,6 +17,7 @@ const {
 
 const {
     upload,
+    verifyImageContent,
 } = require("../middleware/upload.middleware");
 
 const router = express.Router();
@@ -42,6 +43,7 @@ router.post(
     authenticateToken,
     authorizeAdmin,
     upload.single("image"),
+    verifyImageContent,
     createProduct
 );
 
@@ -51,6 +53,7 @@ router.put(
     authenticateToken,
     authorizeAdmin,
     upload.single("image"),
+    verifyImageContent,
     updateProduct
 );
 

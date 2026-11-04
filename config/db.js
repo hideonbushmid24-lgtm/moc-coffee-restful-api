@@ -9,8 +9,13 @@ const pool = mysql.createPool({
     database: process.env.DB_NAME || 'moc_coffee',
     charset: 'utf8mb4',
     waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
+    connectionLimit: Number(process.env.DB_POOL_SIZE || 10),
+    queueLimit: 100,           // quá 100 request đang chờ kết nối thì báo lỗi ngay, không để treo vô hạn
+    connectTimeout: 10000,     // 10s không kết nối được MySQL thì báo lỗi
+    enableKeepAlive: true,     // giữ kết nối sống, tránh lỗi "read ECONNRESET" sau khi để quên một lúc
+    keepAliveInitialDelay: 10000,
+    maxIdle: 10,               // số kết nối rảnh tối đa được giữ lại
+    idleTimeout: 60000         // kết nối rảnh quá 60s thì đóng
 });
 
 module.exports = pool;

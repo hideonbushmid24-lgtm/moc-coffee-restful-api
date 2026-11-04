@@ -8,13 +8,36 @@ if (
     SECRET_KEY.trim().length < 32
 ) {
     throw new Error(
-        'JWT_SECRET phải được cấu hình bằng khóa ngẫu nhiên ít nhất 32 ký tự.'
+            'JWT_SECRET phải được cấu hình bằng khóa ngẫu nhiên ít nhất 32 ký tự.'
     );
+}
+
+// Cache ngắn hạn kết quả tra tài khoản: một trang admin gọi nhiều API cùng lúc,
+// không cần SELECT users cho từng request. Khóa tài khoản sẽ có hiệu lực sau tối đa AUTH_CACHE_MS.
+// Đặt AUTH_CACHE_MS=0 trong .env để tắt cache.
+const AUTH_CACHE_MS = Number(process.env.AUTH_CACHE_MS ?? 10000);
+const userCache = new Map(); // userId -> { user, expires }
+
+function getCachedUser(userId) {
+    const hit = userCache.get(userId);
+    if (!hit) return null;
+    if (hit.expires <= Date.now()) {
+        userCache.delete(userId);
+        return null;
+    }
+    return hit.user;
+}
+
+function setCachedUser(userId, user) {
+    if (AUTH_CACHE_MS <= 0) return;
+    if (userCache.size > 500) userCache.clear(); // chặn phình bộ nhớ
+    userCache.set(userId, { user, expires: Date.now() + AUTH_CACHE_MS });
 }
 
 async function verifyToken(req, res, next) {
     const authorization = req.headers.authorization || '';
     const match = /^Bearer\s+(\S+)$/i.exec(authorization);
+
 
     if (!match) {
         return res.status(401).json({
@@ -69,29 +92,32 @@ async function verifyToken(req, res, next) {
         return res.status(401).json({
             success: false,
             message: 'Token có thông tin tài khoản không hợp lệ.',
-            code: 'TOKEN_INVALID',
+                        code: 'TOKEN_INVALID',
         });
     }
 
-    let user;
+    let user = getCachedUser(userId);
 
-    try {
-        const [rows] = await db.execute(
-            `SELECT id, full_name, email, role, status
-             FROM users
-             WHERE id = ?
-             LIMIT 1`,
-            [userId]
-        );
+    if (!user) {
+        try {
+            const [rows] = await db.execute(
+                `SELECT id, full_name, email, role, status
+                 FROM users
+                 WHERE id = ?
+                 LIMIT 1`,
+                [userId]
+            );
 
-        user = rows[0];
-    } catch (error) {
-        console.error('Lỗi kiểm tra tài khoản:', error.code);
+            user = rows[0];
+            if (user && Number(user.status) === 1) setCachedUser(userId, user);
+        } catch (error) {
+            console.error('Lỗi kiểm tra tài khoản:', error.code);
 
-        return res.status(500).json({
-            success: false,
-            message: 'Không thể kiểm tra tài khoản lúc này.',
-        });
+            return res.status(500).json({
+                success: false,
+                message: 'Không thể kiểm tra tài khoản lúc này.',
+            });
+        }
     }
 
     if (!user || Number(user.status) !== 1) {

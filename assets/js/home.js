@@ -46,6 +46,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                   class="card-img-top"
                   alt="${escapeHTML(product.name)}"
                   data-product-image
+                  loading="lazy" 
                 />
                 ${index === 0
                   ? '<span class="badge bg-danger position-absolute top-0 start-0 m-3">Nổi bật</span>'

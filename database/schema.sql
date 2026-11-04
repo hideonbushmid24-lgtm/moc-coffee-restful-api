@@ -46,9 +46,11 @@ CREATE TABLE IF NOT EXISTS products (
     status TINYINT(1) NOT NULL DEFAULT 1,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_products_status_category (status, category_id),
     CONSTRAINT fk_products_categories FOREIGN KEY (category_id)
         REFERENCES categories(id) ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
 
 INSERT IGNORE INTO categories (name, slug, description) VALUES
     ('Cà phê', 'ca-phe', 'Các loại cà phê truyền thống'),
@@ -86,9 +88,12 @@ CREATE TABLE IF NOT EXISTS orders (
     INDEX idx_orders_phone (customer_phone),
     INDEX idx_orders_status (status),
     INDEX idx_orders_created_at (created_at),
+    INDEX idx_orders_table_open (table_code, status, payment_status),
+    INDEX idx_orders_payment_status (payment_status),
     CONSTRAINT fk_orders_users FOREIGN KEY (user_id)
         REFERENCES users(id) ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
 
 CREATE TABLE IF NOT EXISTS order_items (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -166,6 +171,14 @@ CREATE TABLE IF NOT EXISTS bookings (
     ),
 
     INDEX idx_bookings_status (status),
+
+    INDEX idx_bookings_table_date_time (
+        table_id,
+        booking_date,
+        booking_time
+    ),
+
+    INDEX idx_bookings_status_created (status, created_at),
 
     CONSTRAINT fk_bookings_table
         FOREIGN KEY (table_id)

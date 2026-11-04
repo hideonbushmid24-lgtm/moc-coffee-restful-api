@@ -456,15 +456,15 @@
                       </label>
                     </div>
 
-                    <!-- Bàn T03 đã đặt -->
+                    <!-- Bàn T03 (trạng thái thật lấy từ API trong booking.js) -->
                     <div class="col-6 col-md-4 col-xl-3">
                       <input type="radio" class="btn-check table-radio" name="tableId" id="table-03" value="T03"
-                        disabled />
+                        data-name="Bàn T03" data-capacity="4" autocomplete="off" />
 
-                      <label class="table-option unavailable" for="table-03">
+                      <label class="table-option available" for="table-03">
                         <i class="bi bi-table fs-3"></i>
                         <strong>Bàn T03</strong>
-                        <small>Đã đặt</small>
+                        <small>4 người</small>
                       </label>
                     </div>
 
@@ -492,15 +492,15 @@
                       </label>
                     </div>
 
-                    <!-- Bàn T06 đã đặt -->
+                    <!-- Bàn T06 (trạng thái thật lấy từ API trong booking.js) -->
                     <div class="col-6 col-md-4 col-xl-3">
                       <input type="radio" class="btn-check table-radio" name="tableId" id="table-06" value="T06"
-                        disabled />
+                        data-name="Bàn T06" data-capacity="6" autocomplete="off" />
 
-                      <label class="table-option unavailable" for="table-06">
+                      <label class="table-option available" for="table-06">
                         <i class="bi bi-table fs-3"></i>
                         <strong>Bàn T06</strong>
-                        <small>Đã đặt</small>
+                        <small>6 người</small>
                       </label>
                     </div>
 
@@ -561,7 +561,7 @@
 
             <!-- Nội dung bên phải -->
             <div class="col-12 col-lg-4">
-              <div class="card border-0 shadow-sm booking-summary">
+              <div class="card border-0 shadow-sm ">
                 <div class="card-body p-4">
                   <h2 class="h4 mb-4">
                     <i class="bi bi-clipboard-check me-2 text-success"></i>

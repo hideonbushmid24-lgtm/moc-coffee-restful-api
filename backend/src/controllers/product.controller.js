@@ -129,15 +129,20 @@ const formatProduct = (req, product) => {
     };
 };
 
-// GET /api/products
-const getProducts = async (req, res) => {
+// Escape % và _ để người dùng gõ "50%" hay "a_b" thì tìm đúng ký tự đó, không bị hiểu là ký tự đại diện của LIKE
+const escapeLike = (text) => text.replace(/[\\%_]/g, "\\$&");
+
+// Dùng chung cho GET /api/products (khách) và GET /api/products/admin
+// onlyActive = true: chỉ sản phẩm và danh mục đang hoạt động
+const listProducts = async (req, res, onlyActive, errorLabel) => {
     try {
         const search =
             typeof req.query.search === "string"
-                ? req.query.search.trim()
+                ? req.query.search.trim().slice(0, 100)
                 : "";
 
         let categoryId = null;
+
 
         if (req.query.category_id !== undefined) {
             categoryId = parsePositiveId(
@@ -153,10 +158,9 @@ const getProducts = async (req, res) => {
             }
         }
 
-        const conditions = [
-            "p.status = 1",
-            "c.status = 1",
-        ];
+        const conditions = onlyActive
+            ? ["p.status = 1", "c.status = 1"]
+            : [];
 
         const values = [];
 
@@ -166,91 +170,11 @@ const getProducts = async (req, res) => {
                   OR p.description LIKE ?)`
             );
 
-            const keyword = `%${search}%`;
+            const keyword = `%${escapeLike(search)}%`;
 
             values.push(keyword, keyword);
         }
 
-        if (categoryId) {
-            conditions.push("p.category_id = ?");
-            values.push(categoryId);
-        }
-
-        const [products] = await pool.execute(
-            `SELECT
-                p.id,
-                p.category_id,
-                c.name AS category_name,
-                p.name,
-                p.slug,
-                p.description,
-                p.price,
-                p.image,
-                p.status,
-                p.created_at,
-                p.updated_at
-             FROM products AS p
-             INNER JOIN categories AS c
-                ON c.id = p.category_id
-             WHERE ${conditions.join(" AND ")}
-             ORDER BY p.id DESC`,
-            values
-        );
-
-        return res.status(200).json({
-            success: true,
-            count: products.length,
-            data: products.map((product) =>
-                formatProduct(req, product)
-            ),
-        });
-    } catch (error) {
-        console.error("Lỗi lấy sản phẩm:", error);
-
-        return res.status(500).json({
-            success: false,
-            message: "Lỗi máy chủ khi lấy sản phẩm",
-        });
-    }
-};
-
-// GET /api/products/admin
-const getAllProducts = async (req, res) => {
-    try {
-        const search =
-            typeof req.query.search === "string"
-                ? req.query.search.trim()
-                : "";
-
-        let categoryId = null;
-
-        if (req.query.category_id !== undefined) {
-            categoryId = parsePositiveId(
-                req.query.category_id
-            );
-
-            if (!categoryId) {
-                return res.status(400).json({
-                    success: false,
-                    message:
-                        "ID danh mục không hợp lệ",
-                });
-            }
-        }
-
-        const conditions = [];
-        const values = [];
-
-        if (search) {
-            conditions.push(
-                `(p.name LIKE ?
-                  OR p.description LIKE ?)`
-            );
-
-            const keyword = `%${search}%`;
-
-            values.push(keyword, keyword);
-        }
 
         if (categoryId) {
             conditions.push("p.category_id = ?");
@@ -291,10 +215,7 @@ const getAllProducts = async (req, res) => {
             ),
         });
     } catch (error) {
-        console.error(
-            "Lỗi lấy sản phẩm Admin:",
-            error
-        );
+        console.error(errorLabel, error);
 
         return res.status(500).json({
             success: false,
@@ -302,6 +223,14 @@ const getAllProducts = async (req, res) => {
         });
     }
 };
+
+// GET /api/products
+const getProducts = (req, res) =>
+    listProducts(req, res, true, "Lỗi lấy sản phẩm:");
+
+// GET /api/products/admin
+const getAllProducts = (req, res) =>
+    listProducts(req, res, false, "Lỗi lấy sản phẩm Admin:");
 
 // GET /api/products/:id
 const getProductById = async (req, res) => {

@@ -21,7 +21,10 @@ document.addEventListener('DOMContentLoaded', function () {
     var statusFilter = A.fresh('invoice-status-filter');
     var sortSelect = A.fresh('invoice-sort');
     var resetBtn = A.fresh('reset-invoice-filter');
-    var all = [];
+    var PAGE_SIZE = 20;
+    var page = 1;
+    var loadSeq = 0; // chống kết quả cũ về sau ghi đè kết quả mới
+    var searchTimer = null;
 
     // Xóa các hàng dữ liệu mẫu trong HTML để không hiện số liệu giả khi chưa tải được dữ liệu thật
     function showMessage(text, cls) {
@@ -29,11 +32,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     showMessage('Đang tải...', 'text-secondary');
 
+
     // ----- Dọn phần giao diện mẫu không còn phù hợp -----
     var createBtn = document.getElementById('open-create-invoice-button');
     if (createBtn) createBtn.remove(); // hóa đơn sinh tự động từ đơn hàng
-    var footer = document.querySelector('.card-footer');
-    if (footer && footer.querySelector('.pagination')) footer.remove();
+    var footer = document.querySelector('.card-footer'); // khối phân trang, được AdminPager vẽ lại
 
     // ----- Hàm hỗ trợ -----
     function pad(n) { return String(n).padStart(2, '0'); }
@@ -94,61 +97,60 @@ document.addEventListener('DOMContentLoaded', function () {
             '<td class="text-center pe-4">' + actions(o) + '</td></tr>';
     }
 
-    function filtered() {
-        var q = norm(search && search.value).trim();
-        var from = dateFrom && dateFrom.value;
-        var to = dateTo && dateTo.value;
-        var method = methodFilter && methodFilter.value;
+    function buildQuery() {
+        var q = new URLSearchParams();
+        q.set('page', page);
+        q.set('limit', PAGE_SIZE);
         var st = statusFilter && statusFilter.value;
-        var list = all.filter(function (o) {
-            var d = ymd(o.created_at);
-            if (st && st !== 'all' && invStatus(o) !== st) return false;
-            if (method && method !== 'all' && o.payment_method !== method.replace('-', '_')) return false;
-            if (from && d < from) return false;
-            if (to && d > to) return false;
-            if (q && norm([code(o), o.order_code, o.customer_name, o.customer_phone].join(' ')).indexOf(q) === -1) return false;
-            return true;
-        });
+        if (st && st !== 'all') q.set('invoice_status', st);
+        var method = methodFilter && methodFilter.value;
+        if (method && method !== 'all') q.set('payment_method', method.replace('-', '_'));
+        if (dateFrom && dateFrom.value) q.set('date_from', dateFrom.value);
+        if (dateTo && dateTo.value) q.set('date_to', dateTo.value);
+        var keyword = search && search.value.trim();
+        if (keyword) q.set('q', keyword);
         var sort = sortSelect && sortSelect.value;
-        list.sort(function (a, b) {
-            if (sort === 'oldest') return new Date(a.created_at) - new Date(b.created_at);
-            if (sort === 'amount-desc') return b.total_amount - a.total_amount;
-            if (sort === 'amount-asc') return a.total_amount - b.total_amount;
-            return new Date(b.created_at) - new Date(a.created_at);
-        });
-        return list;
+        if (sort) q.set('sort', sort.replace('-', '_'));
+        return q.toString();
     }
 
-    function render() {
-        var list = filtered();
+    function render(list, total) {
         tbody.innerHTML = list.map(row).join('');
-        setText('visible-invoice-count', list.length);
+        setText('visible-invoice-count', total);
         if (emptyBox) emptyBox.classList.toggle('d-none', list.length > 0);
     }
 
-    function stats() {
-        var today = ymd(new Date());
-        var todays = all.filter(function (o) { return ymd(o.created_at) === today; });
-        var revenue = todays.filter(function (o) { return invStatus(o) === 'paid'; })
-            .reduce(function (sum, o) { return sum + o.total_amount; }, 0);
-        setText('today-revenue', money(revenue));
-        setText('today-invoice-count', todays.filter(function (o) { return o.status !== 'cancelled'; }).length);
-        setText('pending-invoice-count', all.filter(function (o) { return invStatus(o) === 'pending'; }).length);
-        setText('paid-invoice-count', all.filter(function (o) { return invStatus(o) === 'paid'; }).length);
+    // Số liệu thẻ thống kê lấy từ server (tính trên tất cả đơn)
+    function stats(s) {
+        setText('today-revenue', money(s.today_revenue));
+        setText('today-invoice-count', s.today_invoices || 0);
+        setText('pending-invoice-count', s.awaiting_payment || 0);
+        setText('paid-invoice-count', s.paid_invoices || 0);
     }
 
     async function load() {
+        var seq = ++loadSeq;
         try {
-            var res = await A.api('/api/orders?limit=200');
-            all = res.data || [];
-            stats();
-            render();
+            var res = await A.api('/api/orders?' + buildQuery());
+            if (seq !== loadSeq) return;
+            stats(res.summary || {});
+            render(res.data || [], res.total || 0);
+            if (page > res.total_pages) { page = res.total_pages; return load(); }
+            window.AdminPager.render(footer, {
+                page: page, totalPages: res.total_pages || 1, total: res.total || 0,
+                limit: PAGE_SIZE, noun: 'hóa đơn',
+                onChange: function (p) { page = p; load(); }
+            });
         } catch (err) {
+            if (seq !== loadSeq) return;
             console.error('Lỗi tải danh sách hóa đơn:', err);
             showMessage('Không tải được hóa đơn. Vui lòng thử lại.', 'text-danger');
             A.toast(err.message, 'error');
         }
     }
+
+    // Đổi bộ lọc thì về trang 1 và hỏi lại server
+    function reload() { page = 1; load(); }
 
     // ----- Chi tiết hóa đơn -----
     async function openDetail(id) {
@@ -210,8 +212,13 @@ document.addEventListener('DOMContentLoaded', function () {
         if (btn.dataset.act === 'pay') return confirmPayment(btn.dataset.id, btn);
     });
 
-    [search, dateFrom, dateTo, methodFilter, statusFilter, sortSelect].forEach(function (el) {
-        if (el) { el.addEventListener('input', render); el.addEventListener('change', render); }
+    [dateFrom, dateTo, methodFilter, statusFilter, sortSelect].forEach(function (el) {
+        if (el) el.addEventListener('change', reload);
+    });
+    // Ô tìm kiếm: chờ người dùng ngừng gõ 300ms rồi mới gọi API
+    if (search) search.addEventListener('input', function () {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(reload, 300);
     });
     if (resetBtn) resetBtn.addEventListener('click', function () {
         if (search) search.value = '';
@@ -220,7 +227,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (methodFilter) methodFilter.value = 'all';
         if (statusFilter) statusFilter.value = 'all';
         if (sortSelect) sortSelect.value = 'newest';
-        render();
+        reload();
     });
 
     load();

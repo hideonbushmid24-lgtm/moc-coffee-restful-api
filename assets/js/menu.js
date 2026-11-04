@@ -204,6 +204,7 @@ document.addEventListener("DOMContentLoaded", function () {
                   class="card-img-top"
                   alt="${escapeHTML(product.name)}"
                   data-product-image
+                  loading="lazy"
                 />
               </div>
 

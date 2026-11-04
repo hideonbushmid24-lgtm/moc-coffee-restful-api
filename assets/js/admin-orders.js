@@ -47,7 +47,10 @@ document.addEventListener('DOMContentLoaded', function () {
     var nextBtn = A.fresh('detail-next-status-button');
     var tabsBox = document.getElementById('order-status-tabs');
     var activeTab = 'all';
-    var all = [];
+    var PAGE_SIZE = 20;
+    var page = 1;
+    var loadSeq = 0; // chống kết quả cũ về sau ghi đè kết quả mới
+    var searchTimer = null;
     var detailOrder = null;
 
     // Xóa các hàng dữ liệu mẫu trong HTML để không hiện số liệu giả khi chưa tải được dữ liệu thật
@@ -64,8 +67,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (o.value === 'served') o.remove(); // database không có trạng thái "đã phục vụ"
         });
     }
-    var footer = document.querySelector('.card-footer');
-    if (footer && footer.querySelector('.pagination')) footer.remove(); // phân trang mẫu
+    var footer = document.querySelector('.card-footer'); // khối phân trang, được AdminPager vẽ lại
     var detailModalEl = document.getElementById('order-detail-modal');
     if (detailModalEl) {
         // Bảng món trong API không có cột trạng thái từng món
@@ -138,68 +140,113 @@ document.addEventListener('DOMContentLoaded', function () {
             '<td class="text-center pe-4">' + actions(o) + '</td></tr>';
     }
 
-    function matchStatus(o, key) {
-        if (!key || key === 'all') return true;
-        if (key === 'payment') return awaitingPayment(o);
-        return (GROUPS[key] || []).indexOf(o.status) !== -1;
+    // Nhóm trạng thái -> danh sách status gửi lên server (null = không lọc)
+    function groupStatuses(key) {
+        if (!key || key === 'all' || key === 'payment') return null;
+        return GROUPS[key] || null;
     }
 
-    function filtered() {
-        var q = norm(search && search.value).trim();
-        var d = dateFilter && dateFilter.value;
-        var type = typeFilter && typeFilter.value;
+    // Ghép điều kiện của tab đang chọn và ô lọc "Trạng thái" thành tham số cho API
+    function buildQuery() {
+        var q = new URLSearchParams();
+        q.set('page', page);
+        q.set('limit', PAGE_SIZE);
+
         var st = statusFilter && statusFilter.value;
-        var list = all.filter(function (o) {
-            if (!matchStatus(o, activeTab)) return false;
-            if (!matchStatus(o, st)) return false;
-            if (type && type !== 'all' && o.order_type !== type.replace('-', '_')) return false;
-            if (d && ymd(o.created_at) !== d) return false;
-            if (q && norm([o.order_code, o.customer_name, o.customer_phone, o.table_code].join(' ')).indexOf(q) === -1) return false;
-            return true;
-        });
+        var a = groupStatuses(activeTab);
+        var b = groupStatuses(st);
+        var statuses = a && b ? a.filter(function (x) { return b.indexOf(x) !== -1; }) : (a || b);
+        if (statuses && !statuses.length) return null; // tab và ô lọc loại trừ nhau => chắc chắn không có đơn nào
+        if (statuses) q.set('status', statuses.join(','));
+        if (activeTab === 'payment' || st === 'payment') q.set('awaiting_payment', '1');
+
+        var type = typeFilter && typeFilter.value;
+        if (type && type !== 'all') q.set('order_type', type.replace('-', '_'));
+        if (dateFilter && dateFilter.value) q.set('date', dateFilter.value);
+        var keyword = search && search.value.trim();
+        if (keyword) q.set('q', keyword);
         var sort = sortSelect && sortSelect.value;
-        list.sort(function (a, b) {
-            if (sort === 'oldest') return new Date(a.created_at) - new Date(b.created_at);
-            if (sort === 'amount-desc') return b.total_amount - a.total_amount;
-            if (sort === 'amount-asc') return a.total_amount - b.total_amount;
-            return new Date(b.created_at) - new Date(a.created_at);
-        });
-        return list;
+        if (sort) q.set('sort', sort.replace('-', '_'));
+        return q.toString();
     }
 
-    function render() {
-        var list = filtered();
+    function render(list, total) {
         tbody.innerHTML = list.map(row).join('');
-        setText('visible-order-count', list.length);
+        setText('visible-order-count', total);
         if (emptyBox) emptyBox.classList.toggle('d-none', list.length > 0);
     }
 
-    function updateTabCounts() {
+    // Số trên các tab lấy từ server (đếm trên TẤT CẢ đơn, không chỉ trang đang xem)
+    function updateTabCounts(s) {
         if (!tabsBox) return;
+        var counts = {
+            all: s.all_orders, 'new': s.pending_orders, preparing: s.preparing_orders,
+            ready: s.ready_orders, payment: s.awaiting_payment, completed: s.completed_orders,
+            cancelled: s.cancelled_orders
+        };
         Array.prototype.slice.call(tabsBox.querySelectorAll('.order-status-tab')).forEach(function (tab) {
             var b = tab.querySelector('.badge');
-            if (!b) return;
-            var key = tab.dataset.status;
-            b.textContent = all.filter(function (o) { return matchStatus(o, key); }).length;
+            if (b) b.textContent = counts[tab.dataset.status] || 0;
         });
     }
 
     async function load() {
+        var seq = ++loadSeq;
         try {
-            var res = await A.api('/api/orders?limit=200');
-            all = res.data || [];
-            var s = res.summary || {};
-            setText('today-order-count', s.today_orders || 0);
-            setText('new-order-count', s.pending_orders || 0);
-            setText('preparing-order-count', s.preparing_orders || 0);
-            setText('payment-order-count', s.awaiting_payment || 0);
-            updateTabCounts();
-            render();
+            var query = buildQuery();
+            var res = query === null
+                ? { data: [], total: 0, total_pages: 1, summary: {} }
+                : await A.api('/api/orders?' + query);
+            if (seq !== loadSeq) return;
+            var s = res.summary;
+            if (s && s.all_orders !== undefined) { // không có summary khi tab và ô lọc loại trừ nhau
+                setText('today-order-count', s.today_orders || 0);
+                setText('new-order-count', s.pending_orders || 0);
+                setText('preparing-order-count', s.preparing_orders || 0);
+                setText('payment-order-count', s.awaiting_payment || 0);
+                updateTabCounts(s);
+            }
+            render(res.data || [], res.total || 0);
+            if (page > res.total_pages) { page = res.total_pages; return load(); } // trang hiện tại không còn (vd vừa hủy đơn cuối)
+            window.AdminPager.render(footer, {
+                page: page, totalPages: res.total_pages || 1, total: res.total || 0,
+                limit: PAGE_SIZE, noun: 'đơn hàng',
+                onChange: function (p) { page = p; load(); }
+            });
         } catch (err) {
+            if (seq !== loadSeq) return;
             console.error('Lỗi tải danh sách đơn hàng:', err);
             showMessage('Không tải được đơn hàng. Vui lòng thử lại.', 'text-danger');
             A.toast(err.message, 'error');
         }
+    }
+
+    // Đổi bộ lọc thì về trang 1 và hỏi lại server
+    function reload() { page = 1; load(); }
+
+        /* Tiến trình đơn hàng: tô màu các bước theo trạng thái đơn + thanh toán */
+    function renderTimeline(o, created) {
+        var items = document.querySelectorAll('.order-timeline .order-timeline-item');
+        if (items.length < 4) return;
+        var cancelled = o.status === 'cancelled';
+        var cooking = ['preparing', 'ready', 'completed'].indexOf(o.status) !== -1;
+        var served = ['ready', 'completed'].indexOf(o.status) !== -1;
+        var paid = o.payment_status === 'paid';
+        var payNote = paid ? 'Đã xác nhận thanh toán'
+            : o.payment_status === 'pending_verification' ? 'Chờ xác nhận thanh toán'
+            : o.payment_status === 'failed' ? 'Thanh toán thất bại'
+            : o.payment_status === 'refunded' ? 'Đã hoàn tiền' : 'Chưa cập nhật';
+        var steps = [
+            { done: true, note: created.time + ' ' + created.date + (cancelled ? ' · Đơn đã hủy' : '') },
+            { done: cooking, note: o.status === 'preparing' ? 'Đang thực hiện' : cooking ? 'Hoàn tất' : 'Chưa cập nhật' },
+            { done: served, note: o.status === 'completed' ? 'Đã phục vụ' : served ? 'Sẵn sàng phục vụ' : 'Chưa cập nhật' },
+            { done: paid, note: payNote }
+        ];
+        steps.forEach(function (s, i) {
+            items[i].classList.toggle('completed', s.done);
+            var small = items[i].querySelector('small');
+            if (small) small.textContent = s.note;
+        });
     }
 
     // ----- Chi tiết đơn -----
@@ -222,6 +269,7 @@ document.addEventListener('DOMContentLoaded', function () {
         setText('detail-order-discount', '-' + money(o.discount_amount));
         setText('detail-order-service-fee', money(o.service_fee));
         setText('detail-order-total', money(o.total_amount));
+        renderTimeline(o, t);
 
         var body = document.getElementById('detail-order-items');
         if (body) {
@@ -318,11 +366,16 @@ document.addEventListener('DOMContentLoaded', function () {
         Array.prototype.slice.call(tabsBox.querySelectorAll('.order-status-tab')).forEach(function (t) {
             t.classList.toggle('active', t === tab);
         });
-        render();
+        reload();
     });
 
-    [search, dateFilter, typeFilter, statusFilter, sortSelect].forEach(function (el) {
-        if (el) { el.addEventListener('input', render); el.addEventListener('change', render); }
+    [dateFilter, typeFilter, statusFilter, sortSelect].forEach(function (el) {
+        if (el) el.addEventListener('change', reload);
+    });
+    // Ô tìm kiếm: chờ người dùng ngừng gõ 300ms rồi mới gọi API
+    if (search) search.addEventListener('input', function () {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(reload, 300);
     });
     if (resetBtn) resetBtn.addEventListener('click', function () {
         if (search) search.value = '';
@@ -334,7 +387,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (tabsBox) Array.prototype.slice.call(tabsBox.querySelectorAll('.order-status-tab')).forEach(function (t) {
             t.classList.toggle('active', t.dataset.status === 'all');
         });
-        render();
+        reload();
     });
     if (refreshBtn) refreshBtn.addEventListener('click', load);
 

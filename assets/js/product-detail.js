@@ -218,6 +218,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 class="card-img-top"
                 alt="${escapeHTML(product.name)}"
                 data-related-image
+                loading="lazy"
               />
 
               <div class="card-body d-flex flex-column">

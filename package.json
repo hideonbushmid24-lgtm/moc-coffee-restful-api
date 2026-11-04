@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "create-admin": "node scripts/create-admin.js"
+    "create-admin": "node scripts/create-admin.js",
+    "check-db": "node scripts/check-db.js"
   },
   "repository": {
     "type": "git",
@@ -21,11 +22,13 @@
   "description": "",
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "compression": "^1.8.2",
     "cors": "^2.8.6",
     "dotenv": "^18.0.6",
     "express": "^5.2.1",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.5.0",
-    "mysql2": "^3.24.5"
+    "mysql2": "^3.24.6"
   }
 }
