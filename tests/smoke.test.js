@@ -156,6 +156,9 @@ test('Dashboard trả số liệu động đầy đủ', async () => {
                 },
             ],
         },
+        recentOrders: [],
+        upcomingBookings: [],
+        bestSellers: [],
     });
 
     const invalidPeriod = await call(

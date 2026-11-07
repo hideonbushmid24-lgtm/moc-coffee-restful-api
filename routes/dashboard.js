@@ -37,6 +37,9 @@ router.get('/stats', async (req, res) => {
             [bookingRows],
             [orderRows],
             [revenueRows],
+            [recentOrderRows],
+            [upcomingBookingRows],
+            [bestSellerRows],
         ] = await Promise.all([
             db.query(`
                 SELECT
@@ -164,6 +167,58 @@ router.get('/stats', async (req, res) => {
                 GROUP BY period_key
                 ORDER BY period_key
             `),
+
+            db.query(`
+                SELECT
+                    order_code,
+                    order_type,
+                    table_code,
+                    total_amount,
+                    status,
+                    payment_status,
+                    created_at
+                FROM orders
+                ORDER BY created_at DESC, id DESC
+                LIMIT 5
+            `),
+
+            db.query(`
+                SELECT
+                    b.booking_code,
+                    b.customer_name,
+                    b.booking_date,
+                    b.booking_time,
+                    b.guest_count,
+                    b.status,
+                    t.table_code,
+                    t.area
+                FROM bookings AS b
+                INNER JOIN coffee_tables AS t
+                    ON t.id = b.table_id
+                WHERE b.status IN ('pending', 'confirmed')
+                  AND TIMESTAMP(
+                        b.booking_date,
+                        b.booking_time
+                      ) >= NOW()
+                ORDER BY b.booking_date, b.booking_time
+                LIMIT 4
+            `),
+
+            db.query(`
+                SELECT
+                    oi.product_name AS name,
+                    SUM(oi.quantity) AS quantity,
+                    SUM(oi.line_total) AS revenue
+                FROM order_items AS oi
+                INNER JOIN orders AS o
+                    ON o.id = oi.order_id
+                WHERE o.status <> 'cancelled'
+                  AND o.created_at >= CURDATE()
+                  AND o.created_at < CURDATE() + INTERVAL 1 DAY
+                GROUP BY oi.product_name
+                ORDER BY quantity DESC, revenue DESC
+                LIMIT 4
+            `),
         ]);
 
         const tables = tableRows[0] || {};
@@ -215,6 +270,30 @@ router.get('/stats', async (req, res) => {
                 total: periodRevenue,
                 series: revenueSeries,
             },
+            recentOrders: recentOrderRows.map((row) => ({
+                orderCode: row.order_code,
+                orderType: row.order_type,
+                tableCode: row.table_code,
+                totalAmount: Number(row.total_amount || 0),
+                status: row.status,
+                paymentStatus: row.payment_status,
+                createdAt: row.created_at,
+            })),
+            upcomingBookings: upcomingBookingRows.map((row) => ({
+                bookingCode: row.booking_code,
+                customerName: row.customer_name,
+                bookingDate: row.booking_date,
+                bookingTime: row.booking_time,
+                guestCount: Number(row.guest_count || 0),
+                status: row.status,
+                tableCode: row.table_code,
+                area: row.area,
+            })),
+            bestSellers: bestSellerRows.map((row) => ({
+                name: row.name,
+                quantity: Number(row.quantity || 0),
+                revenue: Number(row.revenue || 0),
+            })),
         });
     } catch (err) {
         console.error('Lỗi dashboard:', err);

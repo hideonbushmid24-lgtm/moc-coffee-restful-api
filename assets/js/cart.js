@@ -141,6 +141,55 @@ document.addEventListener("DOMContentLoaded", function () {
     return `OD${timePart}${randomPart}`;
   }
 
+  async function loadAvailableTables() {
+    if (!tableCodeSelect) {
+      return;
+    }
+
+    tableCodeSelect.disabled = true;
+    tableCodeSelect.innerHTML =
+      '<option value="">Đang tải danh sách bàn...</option>';
+
+    try {
+      const response = await fetch("/api/tables");
+      const data = await response.json();
+
+      if (!response.ok || !Array.isArray(data)) {
+        throw new Error(
+          data?.message || "Không tải được danh sách bàn."
+        );
+      }
+
+      const availableTables = data.filter(
+        (table) => table.status === "available"
+      );
+
+      tableCodeSelect.innerHTML =
+        '<option value="">Chọn bàn còn trống</option>';
+
+      availableTables.forEach(function (table) {
+        const option = document.createElement("option");
+        option.value = table.table_code;
+        option.textContent =
+          `${table.table_name || `Bàn ${table.table_code}`} ` +
+          `(${Number(table.capacity || 0)} người)`;
+        tableCodeSelect.appendChild(option);
+      });
+
+      if (!availableTables.length) {
+        tableCodeSelect.innerHTML =
+          '<option value="">Hiện không có bàn trống</option>';
+      }
+
+      tableCodeSelect.disabled = false;
+    } catch (error) {
+      tableCodeSelect.innerHTML =
+        '<option value="">Không tải được danh sách bàn</option>';
+      tableCodeSelect.disabled = true;
+      showToast(error.message, "danger");
+    }
+  }
+
   function showToast(message, type = "success") {
     const toastElement =
       document.querySelector("#cart-toast");
@@ -1015,4 +1064,5 @@ document.addEventListener("DOMContentLoaded", function () {
 
   updateOrderType();
   renderCart();
+  loadAvailableTables();
 });

@@ -33,9 +33,7 @@ document.addEventListener("DOMContentLoaded", function () {
     ".area-radio"
   );
 
-  const tableRadios = document.querySelectorAll(
-    ".table-radio"
-  );
+  let tableRadios = [];
 
   const bookingNoteInput =
     document.querySelector("#booking-note");
@@ -195,22 +193,19 @@ document.addEventListener("DOMContentLoaded", function () {
      3. DỮ LIỆU KHU VỰC CỦA CÁC BÀN
   ========================================================= */
 
-  const tableAreas = {
-    T01: "Trong nhà",
-    T02: "Trong nhà",
-    T03: "Trong nhà",
-    T04: "Trong nhà",
-    T05: "Ngoài trời",
-    T06: "Ngoài trời",
-    T07: "Ngoài trời",
-    T08: "Ban công",
-  };
+  const tableAreas = {};
 
-  /*
-   * Ghi lại trạng thái ban đầu của từng bàn.
-   * Các bàn bị disabled trong HTML được xem là đã đặt.
-   */
-  tableRadios.forEach(function (radio) {
+  function normalizeTableArea(area) {
+    const value = String(area || "").trim();
+
+    if (value === "Tầng trệt") return "Trong nhà";
+    if (value === "Khu vực cửa sổ") return "Ngoài trời";
+    if (value === "Tầng 1") return "Ban công";
+
+    return value || "Trong nhà";
+  }
+
+  function bindTableRadio(radio) {
     radio.dataset.originalDisabled = radio.disabled
       ? "true"
       : "false";
@@ -225,7 +220,17 @@ document.addEventListener("DOMContentLoaded", function () {
       radio.dataset.originalLabel =
         smallElement.textContent.trim();
     }
-  });
+
+    radio.addEventListener("change", function () {
+      tableErrorElement.classList.add("d-none");
+      updateBookingSummary();
+    });
+  }
+
+  /*
+   * Ghi lại trạng thái ban đầu của từng bàn.
+   * Các bàn bị disabled trong HTML được xem là đã đặt.
+   */
 
   /* =========================================================
      4. THIẾT LẬP NGÀY ĐẶT
@@ -587,13 +592,6 @@ document.addEventListener("DOMContentLoaded", function () {
     );
   });
 
-  tableRadios.forEach(function (radio) {
-    radio.addEventListener("change", function () {
-      tableErrorElement.classList.add("d-none");
-      updateBookingSummary();
-    });
-  });
-
   bookingNoteInput.addEventListener(
     "input",
     function () {
@@ -788,6 +786,15 @@ document.addEventListener("DOMContentLoaded", function () {
   ========================================================= */
 
   async function loadTablesFromApi() {
+    const tableList = document.querySelector("#table-list");
+
+    if (!tableList) {
+      return;
+    }
+
+    tableList.innerHTML =
+      '<div class="col-12 text-center text-secondary py-4">Đang tải danh sách bàn...</div>';
+
     try {
       const response = await fetch("/api/tables");
 
@@ -798,52 +805,68 @@ document.addEventListener("DOMContentLoaded", function () {
       const tables = await response.json();
 
       if (!Array.isArray(tables)) {
-        return;
+        throw new Error("Dữ liệu bàn không hợp lệ");
       }
 
-      tables.forEach(function (table) {
-        const radio = Array.from(tableRadios).find(
-          function (item) {
-            return item.value === table.table_code;
-          }
-        );
+      tableList.innerHTML = "";
 
-        if (!radio) {
-          return;
-        }
-
-        const label = document.querySelector(
-          `label[for="${radio.id}"]`
-        );
-
+      tables.forEach(function (table, index) {
         const underMaintenance =
           table.status === "maintenance";
+        const code = String(table.table_code || "");
+        const id = `table-api-${Number(table.id || index + 1)}`;
+        const column = document.createElement("div");
+        const radio = document.createElement("input");
+        const label = document.createElement("label");
+        const icon = document.createElement("i");
+        const name = document.createElement("strong");
+        const capacity = document.createElement("small");
 
-        radio.dataset.capacity = String(table.capacity);
-        radio.dataset.name = table.table_name;
-        radio.dataset.originalDisabled =
-          underMaintenance ? "true" : "false";
+        column.className = "col-6 col-md-4 col-xl-3";
+        radio.type = "radio";
+        radio.className = "btn-check table-radio";
+        radio.name = "tableId";
+        radio.id = id;
+        radio.value = code;
+        radio.required = !underMaintenance;
+        radio.disabled = underMaintenance;
+        radio.dataset.name = table.table_name || `Bàn ${code}`;
+        radio.dataset.capacity = String(Number(table.capacity || 0));
         radio.dataset.disabledLabel = "Đang bảo trì";
-        radio.dataset.originalLabel =
-          `${table.capacity} người`;
 
-        const nameElement = label?.querySelector("strong");
+        label.className =
+          "table-option " +
+          (underMaintenance ? "unavailable" : "available");
+        label.htmlFor = id;
+        icon.className = "bi bi-table fs-3";
+        name.textContent = radio.dataset.name;
+        capacity.textContent = underMaintenance
+          ? "Đang bảo trì"
+          : `${radio.dataset.capacity} người`;
 
-        if (nameElement) {
-          nameElement.textContent = table.table_name;
-        }
+        label.append(icon, name, capacity);
+        column.append(radio, label);
+        tableList.appendChild(column);
 
-        if (underMaintenance && radio.checked) {
-          radio.checked = false;
-        }
+        tableAreas[code] = normalizeTableArea(table.area);
+        bindTableRadio(radio);
       });
+
+      tableRadios = Array.from(
+        tableList.querySelectorAll(".table-radio")
+      );
+
+      if (!tableRadios.length) {
+        tableList.innerHTML =
+          '<div class="col-12 text-center text-secondary py-4">Chưa có bàn để đặt.</div>';
+      }
 
       filterAvailableTables();
     } catch (error) {
-      console.warn(
-        "Dùng danh sách bàn mặc định:",
-        error.message
-      );
+      tableRadios = [];
+      tableList.innerHTML =
+        '<div class="col-12"><div class="alert alert-danger mb-0">Không tải được danh sách bàn. Vui lòng tải lại trang.</div></div>';
+      console.error("Lỗi tải danh sách bàn:", error);
     }
   }
 
