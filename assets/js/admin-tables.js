@@ -5,13 +5,13 @@ document.addEventListener('DOMContentLoaded', function () {
     var STATUS = {
         available: { text: 'Bàn trống', cls: 'available' },
         occupied: { text: 'Đang sử dụng', cls: 'occupied' },
-        reserved: { text: 'Đã đặt trước', cls: 'reserved' }
+        maintenance: { text: 'Bảo trì', cls: 'maintenance' }
     };
     // Hành động nhanh theo trạng thái hiện tại
     var NEXT = {
-        available: [['occupied', 'Nhận khách', 'primary'], ['reserved', 'Giữ chỗ', 'warning']],
+        available: [['occupied', 'Nhận khách', 'primary'], ['maintenance', 'Bảo trì', 'secondary']],
         occupied: [['available', 'Trả bàn', 'success']],
-        reserved: [['occupied', 'Khách đã đến', 'primary'], ['available', 'Hủy giữ chỗ', 'danger']]
+        maintenance: [['available', 'Kết thúc bảo trì', 'success']]
     };
 
     var grid = document.getElementById('table-grid');
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function stats() {
         var set = function (id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
         set('total-table-count', all.length);
-        ['available', 'occupied', 'reserved'].forEach(function (s) {
+        ['available', 'occupied', 'maintenance'].forEach(function (s) {
             set(s + '-table-count', all.filter(function (t) { return t.status === s; }).length);
         });
     }

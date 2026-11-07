@@ -1,10 +1,11 @@
 {
   "name": "moc_coffee",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
+    "test": "node --test tests/smoke.test.js",
     "create-admin": "node scripts/create-admin.js",
     "check-db": "node scripts/check-db.js"
   },

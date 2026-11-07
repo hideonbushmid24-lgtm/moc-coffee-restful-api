@@ -1,0 +1,984 @@
+/* =========================================================
+   PAGES.CSS - MỘC COFFEE
+   Giao diện mới cho các trang con:
+   menu, product-detail, booking, cart, payment, success.
+   Thứ tự nạp:  style.css -> responsive.css -> theme.css -> pages.css
+   Mọi style đều bắt đầu bằng body.inner-page nên không ảnh
+   hưởng trang chủ hay trang admin.
+========================================================= */
+
+/* =========================================================
+   1. NỀN TRANG, CHỮ, BO GÓC
+========================================================= */
+
+body.inner-page {
+  color: var(--moc-ink);
+  background-color: var(--moc-paper);
+  font-family: var(--moc-font-body);
+}
+
+body.inner-page ::selection {
+  color: #ffffff;
+  background-color: var(--moc-accent);
+}
+
+body.inner-page :focus-visible {
+  outline: 3px solid rgba(198, 139, 89, 0.65);
+  outline-offset: 2px;
+}
+
+body.inner-page .bg-light {
+  background-color: var(--moc-cream) !important;
+}
+
+body.inner-page .section-title,
+body.inner-page main h1,
+body.inner-page .booking-callout h2 {
+  font-family: var(--moc-font-display);
+}
+
+body.inner-page .section-title {
+  color: var(--moc-primary-dark);
+}
+
+body.inner-page p.text-uppercase.text-secondary {
+  color: var(--moc-accent) !important;
+  font-size: 0.78rem;
+  letter-spacing: 0.2em;
+}
+
+/* =========================================================
+   2. NAVBAR (luôn nền kính mờ vì trang con không có ảnh phía sau)
+========================================================= */
+
+body.inner-page .navbar {
+  background: rgba(30, 22, 18, 0.9) !important;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18) !important;
+  backdrop-filter: blur(14px) saturate(1.3);
+  transition:
+    min-height 0.35s ease,
+    background-color 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+body.inner-page .navbar.is-scrolled {
+  min-height: 62px;
+  background: rgba(24, 17, 13, 0.95) !important;
+}
+
+body.inner-page .navbar-brand {
+  font-family: var(--moc-font-display);
+  font-size: 24px;
+}
+
+body.inner-page .navbar-brand i {
+  display: inline-block;
+  transition: transform 0.5s var(--moc-ease);
+}
+
+body.inner-page .navbar-brand:hover i {
+  transform: rotate(-14deg) scale(1.12);
+}
+
+body.inner-page .navbar .btn {
+  border-radius: 999px;
+}
+
+/* =========================================================
+   3. BANNER ĐẦU TRANG
+========================================================= */
+
+body.inner-page .page-banner {
+  overflow: hidden;
+  background-attachment: scroll;
+}
+
+body.inner-page .page-banner::before {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(20, 12, 8, 0.35) 0%,
+      rgba(20, 12, 8, 0.1) 40%,
+      rgba(20, 12, 8, 0.7) 100%
+    ),
+    linear-gradient(135deg, rgba(20, 15, 12, 0.78), rgba(62, 39, 35, 0.55));
+}
+
+body.inner-page .page-banner::after {
+  position: absolute;
+  right: -90px;
+  bottom: -130px;
+  width: 340px;
+  height: 340px;
+  border: 56px solid rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  content: "";
+}
+
+body.inner-page .page-banner h1 {
+  font-size: clamp(2rem, 4.6vw, 3.4rem);
+  line-height: 1.15;
+  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+}
+
+body.inner-page .page-banner h1::after {
+  display: block;
+  width: 64px;
+  height: 3px;
+  margin: 16px auto 0;
+  background: linear-gradient(90deg, var(--moc-accent), #f0c48f);
+  border-radius: 3px;
+  content: "";
+}
+
+body.inner-page .page-banner .lead {
+  margin-top: 1rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* =========================================================
+   4. BREADCRUMB
+========================================================= */
+
+body.inner-page .breadcrumb {
+  font-size: 0.92rem;
+}
+
+body.inner-page .breadcrumb-item a {
+  color: var(--moc-primary);
+  font-weight: 500;
+}
+
+body.inner-page .breadcrumb-item a:hover {
+  color: var(--moc-accent);
+}
+
+body.inner-page .breadcrumb-item + .breadcrumb-item::before {
+  content: "\f285";
+  font-family: "bootstrap-icons";
+  font-size: 0.7rem;
+  vertical-align: middle;
+}
+
+/* =========================================================
+   5. CÁC BƯỚC (đặt bàn / giỏ hàng / thanh toán)
+========================================================= */
+
+body.inner-page .step-number {
+  transition:
+    background-color 0.4s ease,
+    box-shadow 0.4s ease,
+    transform 0.4s var(--moc-ease);
+}
+
+body.inner-page .booking-step.active .step-number {
+  background: linear-gradient(135deg, var(--moc-accent), var(--moc-primary));
+  border-color: transparent;
+  box-shadow: 0 6px 16px rgba(111, 78, 55, 0.32);
+}
+
+body.inner-page .step-line {
+  position: relative;
+  overflow: hidden;
+  border-radius: 3px;
+}
+
+body.inner-page .step-line.active::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--moc-accent), var(--moc-primary));
+  content: "";
+}
+
+/* =========================================================
+   6. CARD, FORM
+========================================================= */
+
+body.inner-page .card.border-0.shadow-sm {
+  border-radius: 22px;
+  box-shadow: var(--moc-shadow-sm) !important;
+  transition:
+    box-shadow 0.4s ease,
+    transform 0.4s var(--moc-ease);
+}
+
+body.inner-page .card.border-0.shadow-sm:hover {
+  box-shadow: var(--moc-shadow-md) !important;
+}
+
+body.inner-page .card-header.bg-white {
+  border-bottom: 1px solid rgba(111, 78, 55, 0.1);
+  border-radius: 22px 22px 0 0;
+}
+
+body.inner-page .card-footer.bg-white {
+  border-top: 1px solid rgba(111, 78, 55, 0.1);
+  border-radius: 0 0 22px 22px;
+}
+
+body.inner-page .card h2.h4,
+body.inner-page .card h3.h5 {
+  color: var(--moc-primary-dark);
+  font-family: var(--moc-font-display);
+}
+
+body.inner-page .booking-section-icon,
+body.inner-page .payment-option-icon,
+body.inner-page .support-icon {
+  color: var(--moc-primary);
+  background: linear-gradient(135deg, #f8e8d6, #efd3b4);
+  border-radius: 14px;
+  transition:
+    background 0.4s ease,
+    color 0.4s ease,
+    transform 0.5s var(--moc-ease);
+}
+
+body.inner-page .support-icon {
+  border-radius: 50%;
+}
+
+body.inner-page .card:hover .booking-section-icon,
+body.inner-page .card:hover .support-icon {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--moc-accent), var(--moc-primary));
+  transform: rotate(-6deg) scale(1.06);
+}
+
+body.inner-page .form-label {
+  color: var(--moc-primary-dark);
+  font-size: 0.92rem;
+}
+
+body.inner-page .form-control,
+body.inner-page .form-select {
+  background-color: #fdfbf8;
+  border: 1.5px solid #e6dccf;
+  border-radius: 12px;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background-color 0.25s ease;
+}
+
+body.inner-page .form-control:hover,
+body.inner-page .form-select:hover {
+  border-color: var(--moc-accent-soft);
+}
+
+body.inner-page .form-control:focus,
+body.inner-page .form-select:focus {
+  background-color: #ffffff;
+  border-color: var(--moc-accent);
+  box-shadow: 0 0 0 0.25rem rgba(198, 139, 89, 0.18);
+}
+
+body.inner-page .input-group-text {
+  background-color: #fdfbf8 !important;
+  border: 1.5px solid #e6dccf;
+  border-right: none;
+  border-radius: 12px 0 0 12px;
+}
+
+body.inner-page .input-group > .form-control {
+  border-radius: 0;
+}
+
+body.inner-page .input-group > .btn:last-child {
+  border-radius: 0 12px 12px 0;
+}
+
+body.inner-page .input-group > .btn-outline-coffee:last-child {
+  border-radius: 0 12px 12px 0;
+}
+
+body.inner-page .form-check-input {
+  cursor: pointer;
+}
+
+body.inner-page .alert {
+  border: none;
+  border-radius: 14px;
+}
+
+body.inner-page .alert-warning {
+  color: #6d4c1d;
+  background-color: #fbf0dc;
+}
+
+/* =========================================================
+   7. LỰA CHỌN KHU VỰC / BÀN / DỊCH VỤ / THANH TOÁN
+========================================================= */
+
+body.inner-page .area-option,
+body.inner-page .service-option,
+body.inner-page .payment-option,
+body.inner-page .table-option {
+  position: relative;
+  border-radius: 16px;
+  transition:
+    transform 0.35s var(--moc-ease),
+    box-shadow 0.35s ease,
+    border-color 0.25s ease,
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+body.inner-page .area-option:hover,
+body.inner-page .service-option:hover,
+body.inner-page .payment-option:hover {
+  box-shadow: var(--moc-shadow-sm);
+  transform: translateY(-4px);
+}
+
+body.inner-page .area-option i {
+  transition: transform 0.5s var(--moc-ease);
+}
+
+body.inner-page .area-option:hover i {
+  transform: scale(1.15) rotate(-6deg);
+}
+
+/* Dấu tích khi được chọn */
+body.inner-page .area-radio:checked + .area-option::after,
+body.inner-page .btn-check:checked + .service-option::after {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  color: var(--moc-primary);
+  content: "\f26a";
+  font-family: "bootstrap-icons";
+  font-size: 1.15rem;
+  animation: moc-pop 0.45s var(--moc-ease) both;
+}
+
+body.inner-page .table-option.available:hover {
+  box-shadow: 0 10px 22px rgba(25, 135, 84, 0.2);
+  transform: translateY(-4px);
+}
+
+body.inner-page .table-radio:checked + .table-option {
+  background: linear-gradient(135deg, #2a9d6a, var(--success));
+  animation: moc-pop 0.45s var(--moc-ease) both;
+}
+
+body.inner-page .table-option.unavailable {
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0 8px,
+    rgba(0, 0, 0, 0.035) 8px 16px
+  );
+}
+
+body.inner-page .payment-method-radio:checked + .payment-option {
+  background-color: rgba(198, 139, 89, 0.1);
+  box-shadow: 0 10px 24px rgba(111, 78, 55, 0.14);
+}
+
+body.inner-page .payment-method-radio:checked + .payment-option .payment-option-icon {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--moc-accent), var(--moc-primary));
+}
+
+body.inner-page .payment-method-radio:checked + .payment-option .payment-check {
+  animation: moc-pop 0.45s var(--moc-ease) both;
+}
+
+body.inner-page .payment-detail-box {
+  background-color: #fbf6f0;
+  border-color: #eadfd2;
+  border-radius: 16px;
+  animation: moc-fade-up 0.5s var(--moc-ease) both;
+}
+
+body.inner-page .qr-code-wrapper {
+  border-radius: 16px;
+  box-shadow: var(--moc-shadow-sm);
+}
+
+body.inner-page .summary-row {
+  padding-bottom: 10px;
+  border-bottom: 1px dashed rgba(111, 78, 55, 0.18);
+}
+
+body.inner-page .bg-light .summary-row:last-child,
+body.inner-page .summary-row.mb-0 {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+/* =========================================================
+   8. NÚT BẤM
+========================================================= */
+
+body.inner-page .btn {
+  border-radius: 999px;
+}
+
+body.inner-page .btn-lg {
+  padding: 0.85rem 1.7rem;
+}
+
+body.inner-page .btn-outline-secondary,
+body.inner-page .btn-outline-danger {
+  transition:
+    transform 0.3s var(--moc-ease),
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+body.inner-page .btn-outline-secondary:hover,
+body.inner-page .btn-outline-danger:hover {
+  transform: translateY(-2px);
+}
+
+body.inner-page .btn-link {
+  text-decoration: none;
+}
+
+body.inner-page .btn-light {
+  transition:
+    transform 0.3s var(--moc-ease),
+    box-shadow 0.3s ease;
+}
+
+body.inner-page .btn-light:hover {
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.22);
+  transform: translateY(-2px);
+}
+
+/* =========================================================
+   9. THỰC ĐƠN: bộ lọc + thẻ món
+========================================================= */
+
+body.inner-page .sticky-filter {
+  background-color: rgba(255, 255, 255, 0.88) !important;
+  box-shadow: 0 8px 24px rgba(62, 39, 35, 0.08);
+  backdrop-filter: blur(12px);
+}
+
+body.inner-page .category-btn {
+  padding-right: 1.1rem;
+  padding-left: 1.1rem;
+}
+
+body.inner-page .category-btn.active {
+  box-shadow: 0 8px 18px rgba(111, 78, 55, 0.3);
+}
+
+body.inner-page .product-card {
+  border-radius: 22px;
+  box-shadow: var(--moc-shadow-sm);
+  animation: none;
+  transition:
+    transform 0.5s var(--moc-ease),
+    box-shadow 0.5s var(--moc-ease);
+}
+
+body.inner-page .product-card:hover {
+  box-shadow: var(--moc-shadow-lg);
+  transform: translateY(-10px);
+}
+
+body.inner-page .product-card img {
+  aspect-ratio: 5 / 4;
+  height: auto;
+  transition: transform 0.8s var(--moc-ease);
+}
+
+body.inner-page .product-card:hover img {
+  transform: scale(1.08);
+}
+
+body.inner-page .product-card .badge {
+  border-radius: 999px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+}
+
+body.inner-page .product-card .card-body > p.small {
+  color: var(--moc-accent) !important;
+  font-size: 0.7rem !important;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+body.inner-page .product-card .card-text {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 0.9rem;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+body.inner-page .product-card .mt-auto {
+  padding-top: 0.9rem;
+  border-top: 1px dashed rgba(111, 78, 55, 0.22);
+}
+
+body.inner-page .product-card .text-danger {
+  color: var(--moc-primary) !important;
+}
+
+body.inner-page .product-card .add-to-cart:active {
+  animation: moc-pop 0.4s var(--moc-ease);
+}
+
+body.inner-page #empty-result i {
+  animation: moc-bob 2.4s ease-in-out infinite;
+}
+
+/* =========================================================
+   10. CHI TIẾT MÓN
+========================================================= */
+
+body.inner-page .product-detail-image-wrapper {
+  border-radius: 26px;
+  box-shadow: var(--moc-shadow-md);
+}
+
+body.inner-page .product-detail-image {
+  transition: transform 1s var(--moc-ease);
+}
+
+body.inner-page .product-detail-image-wrapper:hover .product-detail-image {
+  transform: scale(1.06);
+}
+
+body.inner-page .product-detail-badge {
+  border-radius: 999px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.22);
+}
+
+body.inner-page .product-thumbnail {
+  border-radius: 14px;
+  transition:
+    transform 0.35s var(--moc-ease),
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+body.inner-page .product-thumbnail:hover {
+  box-shadow: var(--moc-shadow-sm);
+  transform: translateY(-3px);
+}
+
+body.inner-page .product-thumbnail.active {
+  box-shadow: 0 0 0 3px rgba(198, 139, 89, 0.25);
+}
+
+body.inner-page #product-name {
+  color: var(--moc-primary-dark);
+}
+
+body.inner-page #product-price {
+  color: var(--moc-primary) !important;
+}
+
+body.inner-page .product-option-box {
+  border-radius: 14px;
+  transition:
+    transform 0.35s var(--moc-ease),
+    box-shadow 0.3s ease,
+    border-color 0.25s ease,
+    background-color 0.25s ease;
+}
+
+body.inner-page .product-option-box:hover {
+  box-shadow: var(--moc-shadow-sm);
+  transform: translateY(-3px);
+}
+
+body.inner-page .size-option:checked + .product-option-box {
+  background: linear-gradient(135deg, var(--moc-accent), var(--moc-primary));
+  box-shadow: 0 10px 22px rgba(111, 78, 55, 0.3);
+  animation: moc-pop 0.4s var(--moc-ease) both;
+}
+
+body.inner-page .topping-option {
+  border-radius: 14px;
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.3s var(--moc-ease);
+}
+
+body.inner-page .topping-option:hover {
+  transform: translateX(3px);
+}
+
+body.inner-page .product-action-box {
+  background: linear-gradient(135deg, #fbf3ea, #f6e8d8);
+  border-color: #ecd9c3;
+  border-radius: 20px;
+}
+
+body.inner-page .product-service-item {
+  border-radius: 16px;
+  transition:
+    transform 0.35s var(--moc-ease),
+    box-shadow 0.35s ease;
+}
+
+body.inner-page .product-service-item:hover {
+  box-shadow: var(--moc-shadow-sm);
+  transform: translateY(-3px);
+}
+
+body.inner-page .quantity-control {
+  border-radius: 999px;
+  border-color: #e0d3c3;
+}
+
+body.inner-page .quantity-button {
+  width: 38px;
+  background-color: #f7efe6;
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+body.inner-page .nav-tabs {
+  border-bottom-color: #eadfd2;
+}
+
+body.inner-page .nav-tabs .nav-link {
+  border-radius: 14px 14px 0 0;
+  transition:
+    color 0.25s ease,
+    background-color 0.25s ease;
+}
+
+body.inner-page .tab-content {
+  border-radius: 0 0 20px 20px !important;
+}
+
+body.inner-page .tab-pane.show {
+  animation: moc-fade-up 0.45s var(--moc-ease) both;
+}
+
+body.inner-page .review-item {
+  padding: 12px 14px;
+  background-color: #fdfbf8;
+  border-radius: 14px;
+}
+
+/* =========================================================
+   11. GIỎ HÀNG
+========================================================= */
+
+body.inner-page .cart-table thead th {
+  background-color: #f7efe6 !important;
+  color: var(--moc-primary-dark);
+}
+
+body.inner-page .cart-table tbody tr {
+  transition: background-color 0.25s ease;
+}
+
+body.inner-page .cart-table tbody tr:hover {
+  background-color: #fbf6f0;
+}
+
+body.inner-page .cart-product-image {
+  border-radius: 14px !important;
+  box-shadow: 0 4px 12px rgba(62, 39, 35, 0.12);
+}
+
+body.inner-page .cart-row {
+  animation: moc-fade-up 0.45s var(--moc-ease) both;
+}
+
+body.inner-page .empty-cart-icon {
+  animation: moc-bob 2.6s ease-in-out infinite;
+}
+
+/* =========================================================
+   12. THANH TOÁN
+========================================================= */
+
+body.inner-page .payment-order-item {
+  animation: moc-fade-up 0.45s var(--moc-ease) both;
+}
+
+body.inner-page .payment-item-image {
+  border-radius: 12px !important;
+}
+
+/* =========================================================
+   13. TRANG THÀNH CÔNG
+========================================================= */
+
+body.inner-page .success-card {
+  border-radius: 26px !important;
+}
+
+body.inner-page .success-icon-large,
+body.inner-page .success-icon {
+  position: relative;
+  background: linear-gradient(135deg, #2fb37a, var(--success));
+}
+
+body.inner-page .success-icon-large::before,
+body.inner-page .success-icon::before {
+  position: absolute;
+  inset: -10px;
+  border: 2px solid rgba(25, 135, 84, 0.35);
+  border-radius: 50%;
+  content: "";
+}
+
+body.inner-page .success-code-box {
+  border-radius: 16px;
+  background-color: #eef7f1;
+}
+
+body.inner-page .result-information {
+  border-radius: 16px;
+  transition:
+    transform 0.35s var(--moc-ease),
+    box-shadow 0.35s ease,
+    border-color 0.25s ease;
+}
+
+body.inner-page .result-information:hover {
+  border-color: var(--moc-accent-soft);
+  box-shadow: var(--moc-shadow-sm);
+  transform: translateY(-3px);
+}
+
+body.inner-page .result-product-image {
+  border-radius: 12px !important;
+}
+
+/* =========================================================
+   14. MODAL, TOAST
+========================================================= */
+
+body.inner-page .modal-content {
+  border-radius: 22px;
+  box-shadow: var(--moc-shadow-lg);
+}
+
+body.inner-page .modal.fade .modal-dialog {
+  transform: translateY(26px) scale(0.95);
+  transition: transform 0.45s var(--moc-ease);
+}
+
+body.inner-page .modal.show .modal-dialog {
+  transform: none;
+}
+
+body.inner-page .modal-backdrop.show {
+  backdrop-filter: blur(3px);
+}
+
+body.inner-page .toast {
+  border-radius: 16px;
+}
+
+/* =========================================================
+   15. KÊU GỌI ĐẶT BÀN (cuối trang thực đơn)
+========================================================= */
+
+body.inner-page .booking-callout {
+  padding-top: 5rem !important;
+  padding-bottom: 5rem !important;
+  background:
+    radial-gradient(rgba(255, 255, 255, 0.07) 1.2px, transparent 1.5px) 0 0 /
+      24px 24px,
+    linear-gradient(135deg, rgba(62, 39, 35, 0.97), rgba(111, 78, 55, 0.93));
+}
+
+body.inner-page .booking-callout h2 {
+  font-size: clamp(1.8rem, 3.6vw, 2.8rem);
+}
+
+/* =========================================================
+   16. HIỆU ỨNG
+========================================================= */
+
+@keyframes moc-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes moc-pop {
+  0% {
+    transform: scale(0.82);
+  }
+
+  60% {
+    transform: scale(1.06);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes moc-ring {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.9);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+@keyframes moc-success-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(-25deg);
+  }
+
+  70% {
+    opacity: 1;
+    transform: scale(1.1) rotate(4deg);
+  }
+
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+
+@keyframes moc-line-grow {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes moc-step-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(198, 139, 89, 0.5);
+  }
+
+  70% {
+    box-shadow: 0 0 0 14px rgba(198, 139, 89, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(198, 139, 89, 0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Chữ trong banner hiện lần lượt */
+  body.inner-page .page-banner .container > * {
+    animation: moc-fade-up 0.8s var(--moc-ease) both;
+  }
+
+  body.inner-page .page-banner .container > :nth-child(2) {
+    animation-delay: 0.15s;
+  }
+
+  body.inner-page .page-banner::after {
+    animation: moc-float 12s ease-in-out infinite alternate;
+  }
+
+  /* Đường nối giữa các bước chạy ra */
+  body.inner-page .step-line.active::after {
+    transform-origin: left;
+    animation: moc-line-grow 0.8s var(--moc-ease) 0.2s both;
+  }
+
+  /* Bước hiện tại nhấp nháy nhẹ */
+  body.inner-page .booking-step.active:not(:has(~ .booking-step.active)) .step-number {
+    animation: moc-step-pulse 2.2s ease-out infinite;
+  }
+
+  /* Dấu tích thành công bật ra + vòng sóng lan */
+  body.inner-page .success-icon-large,
+  body.inner-page .success-icon {
+    animation: moc-success-in 0.8s var(--moc-ease) 0.15s both;
+  }
+
+  body.inner-page .success-icon-large::before,
+  body.inner-page .success-icon::before {
+    animation: moc-ring 2s ease-out 0.8s infinite;
+  }
+
+  body.inner-page .success-card .card-body > *:not(.success-icon-large) {
+    animation: moc-fade-up 0.7s var(--moc-ease) both;
+  }
+
+  body.inner-page .success-card .card-body > :nth-child(2) {
+    animation-delay: 0.35s;
+  }
+
+  body.inner-page .success-card .card-body > :nth-child(3) {
+    animation-delay: 0.45s;
+  }
+
+  body.inner-page .success-card .card-body > :nth-child(4) {
+    animation-delay: 0.55s;
+  }
+
+  body.inner-page .success-card .card-body > :nth-child(5) {
+    animation-delay: 0.65s;
+  }
+
+  body.inner-page .booking-callout::before,
+  body.inner-page .booking-callout::after {
+    animation: moc-float 12s ease-in-out infinite alternate;
+  }
+
+  body.inner-page .booking-callout .btn-light {
+    animation: moc-pulse 2.4s ease-out infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.inner-page .success-icon-large::before,
+  body.inner-page .success-icon::before {
+    display: none;
+  }
+}
+
+/* =========================================================
+   17. RESPONSIVE
+========================================================= */
+
+@media (max-width: 767.98px) {
+  body.inner-page .card.border-0.shadow-sm {
+    border-radius: 18px;
+  }
+
+  body.inner-page .page-banner h1::after {
+    margin-top: 12px;
+  }
+
+  body.inner-page .booking-callout {
+    padding-top: 3.5rem !important;
+    padding-bottom: 3.5rem !important;
+  }
+}
+
+/* =========================================================
+   18. CHỈNH NHỎ
+========================================================= */
+
+/* Nút "xóa" cuối ô tìm kiếm bo tròn đúng bên phải */
+body.inner-page .input-group > .btn.btn-outline-secondary:last-child {
+  border-radius: 0 12px 12px 0;
+}
+
+/* Chừa chỗ cho vòng sóng quanh dấu tích thành công */
+body.inner-page .success-icon-large {
+  margin-bottom: 2.2rem !important;
+}

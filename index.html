@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="no-js">
 
 <head>
   <meta charset="UTF-8" />
@@ -16,12 +16,22 @@
   <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 
+  <!-- Font chữ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+
+  <script>document.documentElement.className = "js";</script>
+
   <!-- CSS của dự án -->
   <link rel="stylesheet" href="assets/css/style.css" />
   <link rel="stylesheet" href="assets/css/responsive.css" />
+  <link rel="stylesheet" href="assets/css/theme.css" />
 </head>
 
-<body>
+<body class="home-page">
+  <div class="scroll-progress" aria-hidden="true"></div>
+
   <!-- ==================== HEADER ==================== -->
   <header>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow">
@@ -99,7 +109,8 @@
   <main>
     <!-- Banner -->
     <section id="home">
-      <div id="mainCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
+      <div id="mainCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel"
+          data-bs-interval="2000" data-bs-pause="false" data-bs-touch="true">
         <!-- Chỉ báo slide -->
         <div class="carousel-indicators">
           <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="0" class="active" aria-current="true"
@@ -205,6 +216,11 @@
           </div>
         </div>
 
+        <!-- Gợi ý cuộn xuống -->
+        <a href="#features" class="scroll-cue" aria-label="Cuộn xuống">
+          <span class="scroll-cue-mouse"><span></span></span>
+        </a>
+
         <!-- Nút chuyển banner -->
         <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">
           <span class="carousel-control-prev-icon" aria-hidden="true"></span>
@@ -219,11 +235,11 @@
     </section>
 
     <!-- Tiện ích nổi bật -->
-    <section class="py-5 bg-light">
+    <section id="features" class="features-section">
       <div class="container">
         <div class="row g-4">
-          <div class="col-12 col-md-4">
-            <div class="text-center h-100 p-4 bg-white rounded shadow-sm">
+          <div class="col-12 col-md-4 reveal">
+            <div class="feature-card">
               <div class="feature-icon mb-3">
                 <i class="bi bi-calendar2-check"></i>
               </div>
@@ -237,8 +253,8 @@
             </div>
           </div>
 
-          <div class="col-12 col-md-4">
-            <div class="text-center h-100 p-4 bg-white rounded shadow-sm">
+          <div class="col-12 col-md-4 reveal" style="--d:.12s">
+            <div class="feature-card">
               <div class="feature-icon mb-3">
                 <i class="bi bi-qr-code-scan"></i>
               </div>
@@ -252,8 +268,8 @@
             </div>
           </div>
 
-          <div class="col-12 col-md-4">
-            <div class="text-center h-100 p-4 bg-white rounded shadow-sm">
+          <div class="col-12 col-md-4 reveal" style="--d:.24s">
+            <div class="feature-card">
               <div class="feature-icon mb-3">
                 <i class="bi bi-credit-card"></i>
               </div>
@@ -272,7 +288,7 @@
     <!-- Danh mục -->
     <section class="py-5">
       <div class="container">
-        <div class="text-center mb-5">
+        <div class="text-center mb-5 reveal">
           <p class="text-uppercase text-secondary fw-semibold mb-2">
             Khám phá hương vị
           </p>
@@ -286,7 +302,7 @@
 
         <div class="row g-4">
           <!-- Cà phê -->
-          <div class="col-6 col-lg-3">
+          <div class="col-6 col-lg-3 reveal" style="--d:0.0s">
             <a href="pages/menu.html?category=coffee" class="text-decoration-none">
               <div class="category-card text-center">
                 <img loading="lazy" src="assets/images/products/ca-phe-sua-da.jpg" alt="Danh mục cà phê" class="img-fluid" />
@@ -298,7 +314,7 @@
           </div>
 
           <!-- Trà -->
-          <div class="col-6 col-lg-3">
+          <div class="col-6 col-lg-3 reveal" style="--d:0.1s">
             <a href="pages/menu.html?category=tea" class="text-decoration-none">
               <div class="category-card text-center">
                 <img loading="lazy" src="assets/images/products/tra-dao-cam-sa.jpg" alt="Danh mục trà" class="img-fluid" />
@@ -310,7 +326,7 @@
           </div>
 
           <!-- Đá xay -->
-          <div class="col-6 col-lg-3">
+          <div class="col-6 col-lg-3 reveal" style="--d:0.2s">
             <a href="pages/menu.html?category=ice-blended" class="text-decoration-none">
               <div class="category-card text-center">
                 <img loading="lazy" src="assets/images/products/matcha-da-xay.jpg" alt="Danh mục đá xay" class="img-fluid" />
@@ -322,7 +338,7 @@
           </div>
 
           <!-- Bánh ngọt -->
-          <div class="col-6 col-lg-3">
+          <div class="col-6 col-lg-3 reveal" style="--d:0.3s">
             <a href="pages/menu.html?category=cake" class="text-decoration-none">
               <div class="category-card text-center">
                 <img loading="lazy" src="assets/images/products/banh-tiramisu.jpg" alt="Danh mục bánh ngọt" class="img-fluid" />
@@ -339,7 +355,7 @@
     <!-- Món nổi bật -->
     <section class="py-5 bg-light">
       <div class="container">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 reveal">
           <div>
             <p class="text-uppercase text-secondary fw-semibold mb-2">
               Được yêu thích nhất
@@ -360,7 +376,7 @@
         </div>
         <div class="row g-4" id="featured-product-list">
           <!-- Sản phẩm 1 -->
-          <div class="col-12 col-sm-6 col-lg-3">
+          <div class="col-12 col-sm-6 col-lg-3 reveal" style="--d:0.0s">
             <article class="card product-card">
               <div class="position-relative">
                 <img loading="lazy" src="assets/images/products/ca-phe-sua-da.jpg" class="card-img-top" alt="Cà phê sữa đá" />
@@ -389,7 +405,7 @@
           </div>
 
           <!-- Sản phẩm 2 -->
-          <div class="col-12 col-sm-6 col-lg-3">
+          <div class="col-12 col-sm-6 col-lg-3 reveal" style="--d:0.1s">
             <article class="card product-card">
               <div class="position-relative">
                 <img loading="lazy" src="assets/images/products/bac-xiu.jpg" class="card-img-top" alt="Bạc xỉu" />
@@ -418,7 +434,7 @@
           </div>
 
           <!-- Sản phẩm 3 -->
-          <div class="col-12 col-sm-6 col-lg-3">
+          <div class="col-12 col-sm-6 col-lg-3 reveal" style="--d:0.2s">
             <article class="card product-card">
               <div class="position-relative">
                 <img loading="lazy" src="assets/images/products/tra-dao-cam-sa.jpg" class="card-img-top" alt="Trà đào cam sả" />
@@ -447,7 +463,7 @@
           </div>
 
           <!-- Sản phẩm 4 -->
-          <div class="col-12 col-sm-6 col-lg-3">
+          <div class="col-12 col-sm-6 col-lg-3 reveal" style="--d:0.3s">
             <article class="card product-card">
               <div class="position-relative">
                 <img loading="lazy" src="assets/images/products/matcha-da-xay.jpg" class="card-img-top" alt="Matcha đá xay" />
@@ -478,12 +494,14 @@
     <section id="about" class="py-5">
       <div class="container">
         <div class="row align-items-center g-5">
-          <div class="col-12 col-lg-6">
-            <img loading="lazy" src="assets/images/about-coffee-shop.jpg" class="img-fluid rounded shadow"
-              alt="Không gian bên trong Mộc Coffee" />
+          <div class="col-12 col-lg-6 reveal reveal-left">
+            <div class="about-media">
+              <img loading="lazy" src="assets/images/about-coffee-shop.jpg" class="img-fluid"
+                alt="Không gian bên trong Mộc Coffee" />
+            </div>
           </div>
 
-          <div class="col-12 col-lg-6">
+          <div class="col-12 col-lg-6 reveal reveal-right">
             <p class="text-uppercase text-secondary fw-semibold mb-2">
               Về chúng tôi
             </p>
@@ -546,7 +564,7 @@
     <!-- Quy trình sử dụng -->
     <section class="py-5 bg-light">
       <div class="container">
-        <div class="text-center mb-5">
+        <div class="text-center mb-5 reveal">
           <p class="text-uppercase text-secondary fw-semibold mb-2">
             Đơn giản và thuận tiện
           </p>
@@ -554,8 +572,8 @@
           <h2 class="section-title">Quy trình sử dụng</h2>
         </div>
 
-        <div class="row g-4">
-          <div class="col-12 col-md-4">
+        <div class="row g-4 process-row">
+          <div class="col-12 col-md-4 reveal" style="--d:0.0s">
             <div class="process-card text-center h-100">
               <div class="process-number">1</div>
               <i class="bi bi-calendar-event process-icon"></i>
@@ -569,7 +587,7 @@
             </div>
           </div>
 
-          <div class="col-12 col-md-4">
+          <div class="col-12 col-md-4 reveal" style="--d:0.12s">
             <div class="process-card text-center h-100">
               <div class="process-number">2</div>
               <i class="bi bi-cup-straw process-icon"></i>
@@ -583,7 +601,7 @@
             </div>
           </div>
 
-          <div class="col-12 col-md-4">
+          <div class="col-12 col-md-4 reveal" style="--d:0.24s">
             <div class="process-card text-center h-100">
               <div class="process-number">3</div>
               <i class="bi bi-wallet2 process-icon"></i>
@@ -602,7 +620,7 @@
 
     <!-- Kêu gọi đặt bàn -->
     <section class="booking-callout py-5">
-      <div class="container text-center text-white">
+      <div class="container text-center text-white reveal">
         <h2 class="fw-bold">Bạn đã sẵn sàng ghé Mộc Coffee?</h2>
 
         <p class="lead mb-4">
@@ -635,15 +653,15 @@
           </p>
 
           <div class="d-flex gap-3">
-            <a href="#" class="text-white fs-5" aria-label="Facebook">
+            <a href="#" class="social-link fs-5" aria-label="Facebook">
               <i class="bi bi-facebook"></i>
             </a>
 
-            <a href="#" class="text-white fs-5" aria-label="Instagram">
+            <a href="#" class="social-link fs-5" aria-label="Instagram">
               <i class="bi bi-instagram"></i>
             </a>
 
-            <a href="#" class="text-white fs-5" aria-label="TikTok">
+            <a href="#" class="social-link fs-5" aria-label="TikTok">
               <i class="bi bi-tiktok"></i>
             </a>
           </div>
@@ -735,13 +753,10 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
   <!-- JavaScript của dự án -->
-  <script src="assets/js/main.js"></script>
-</body>
-
-</html>
   <script src="assets/js/client-api.js"></script>
   <script src="assets/js/main.js"></script>
   <script src="assets/js/home.js"></script>
+  <script src="assets/js/effects.js"></script>
 </body>
 
 </html>

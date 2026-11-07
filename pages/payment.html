@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="no-js">
 
 <head>
   <meta charset="UTF-8" />
@@ -16,12 +16,23 @@
   <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 
+  <!-- Font chữ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+
+  <script>document.documentElement.className = "js";</script>
+
   <!-- CSS của dự án -->
   <link rel="stylesheet" href="../assets/css/style.css" />
   <link rel="stylesheet" href="../assets/css/responsive.css" />
+  <link rel="stylesheet" href="../assets/css/theme.css" />
+  <link rel="stylesheet" href="../assets/css/pages.css" />
 </head>
 
-<body>
+<body class="inner-page">
+  <div class="scroll-progress" aria-hidden="true"></div>
+
   <!-- ==================== HEADER ==================== -->
   <header>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow">
@@ -164,7 +175,7 @@
             <!-- Cột trái -->
             <div class="col-12 col-lg-8">
               <!-- Thông tin nhận món -->
-              <div class="card border-0 shadow-sm mb-4">
+              <div class="reveal card border-0 shadow-sm mb-4">
                 <div class="card-body p-4">
                   <div class="d-flex align-items-center mb-4">
                     <div class="booking-section-icon">
@@ -252,7 +263,7 @@
               </div>
 
               <!-- Phương thức thanh toán -->
-              <div class="card border-0 shadow-sm mb-4">
+              <div class="reveal card border-0 shadow-sm mb-4">
                 <div class="card-body p-4">
                   <div class="d-flex align-items-center mb-4">
                     <div class="booking-section-icon">
@@ -430,7 +441,7 @@
               </div>
 
               <!-- Chính sách -->
-              <div class="card border-0 shadow-sm">
+              <div class="reveal card border-0 shadow-sm">
                 <div class="card-body p-4">
                   <div class="form-check">
                     <input type="checkbox" id="payment-policy" class="form-check-input" required />
@@ -454,7 +465,7 @@
 
             <!-- Cột phải -->
             <div class="col-12 col-lg-4">
-              <div class="card border-0 shadow-sm ">
+              <div class="reveal card border-0 shadow-sm ">
                 <div class="card-body p-4">
                   <h2 class="h4 mb-4">
                     <i class="bi bi-receipt-cutoff me-2"></i>
@@ -560,7 +571,7 @@
               </div>
 
               <!-- Hỗ trợ -->
-              <div class="card border-0 shadow-sm mt-4">
+              <div class="reveal card border-0 shadow-sm mt-4">
                 <div class="card-body p-4">
                   <h3 class="h5">
                     <i class="bi bi-headset me-2"></i>
@@ -601,15 +612,15 @@
           </p>
 
           <div class="d-flex gap-3">
-            <a href="#" class="text-white fs-5" aria-label="Facebook">
+            <a href="#" class="social-link fs-5" aria-label="Facebook">
               <i class="bi bi-facebook"></i>
             </a>
 
-            <a href="#" class="text-white fs-5" aria-label="Instagram">
+            <a href="#" class="social-link fs-5" aria-label="Instagram">
               <i class="bi bi-instagram"></i>
             </a>
 
-            <a href="#" class="text-white fs-5" aria-label="TikTok">
+            <a href="#" class="social-link fs-5" aria-label="TikTok">
               <i class="bi bi-tiktok"></i>
             </a>
           </div>
@@ -818,6 +829,6 @@
   <script src="../assets/js/client-api.js"></script>
   <script src="../assets/js/main.js"></script>
   <script src="../assets/js/payment.js"></script>
+  <script src="../assets/js/effects.js"></script>
 </body>
-</html>
 </html>

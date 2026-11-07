@@ -333,28 +333,28 @@
           </div>
         </div>
 
-        <!-- Đã đặt/dọn dẹp -->
+        <!-- Bàn bảo trì -->
         <div class="col-12 col-sm-6 col-xl-3">
           <div class="card admin-stat-card border-0 shadow-sm h-100">
             <div class="card-body">
               <div class="d-flex justify-content-between">
                 <div>
                   <p class="text-secondary mb-2">
-                    Đã đặt/Dọn dẹp
+                    Đang bảo trì
                   </p>
 
-                  <h3 id="reserved-table-count" class="fw-bold mb-1">
-                    3
+                  <h3 id="maintenance-table-count" class="fw-bold mb-1">
+                    0
                   </h3>
                 </div>
 
-                <div class="admin-stat-icon bg-warning-subtle text-warning">
-                  <i class="bi bi-clock-history"></i>
+                <div class="admin-stat-icon bg-secondary-subtle text-secondary">
+                  <i class="bi bi-tools"></i>
                 </div>
               </div>
 
               <small class="text-secondary">
-                2 bàn đã đặt, 1 bàn đang dọn
+                Không phục vụ khi đang bảo trì
               </small>
             </div>
           </div>
@@ -405,8 +405,6 @@
                 <option value="all">Tất cả trạng thái</option>
                 <option value="available">Bàn trống</option>
                 <option value="occupied">Đang sử dụng</option>
-                <option value="reserved">Đã đặt trước</option>
-                <option value="cleaning">Đang dọn dẹp</option>
                 <option value="maintenance">Bảo trì</option>
               </select>
             </div>
@@ -448,13 +446,8 @@
             </span>
 
             <span>
-              <span class="status-dot reserved"></span>
-              Đã đặt
-            </span>
-
-            <span>
-              <span class="status-dot cleaning"></span>
-              Đang dọn
+              <span class="status-dot maintenance"></span>
+              Bảo trì
             </span>
           </div>
         </div>

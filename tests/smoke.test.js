@@ -12,16 +12,62 @@ const jwt = require('jsonwebtoken');
 const calls = [];
 function answer(sql) {
     if (/FROM users/.test(sql)) return [[{ id: 1, full_name: 'Admin', email: 'a@a.vn', role: 'admin', status: 1 }]];
-    if (/FROM coffee_tables WHERE table_code/.test(sql)) return [[{ status: 'available' }]];
+    if (/FROM coffee_tables[\s\S]*WHERE table_code/.test(sql)) return [[{ id: 1, status: 'available' }]];
+    if (/SELECT id, status, payment_status, order_type, table_code FROM orders/.test(sql)) {
+        return [[{ id: 1, status: 'ready', payment_status: 'paid', order_type: 'at_table', table_code: 'T01' }]];
+    }
+    if (/FROM orders[\s\S]*id <>/.test(sql)) return [[]];
+    if (/FROM bookings b[\s\S]*status = 'seated'/.test(sql)) return [[]];
     if (/FROM products AS p/.test(sql)) return [[{ id: 1, name: 'Cà phê sữa đá', price: '29000.00', image: '/uploads/products/a.jpg' }]];
     if (/INSERT INTO orders/.test(sql)) return [{ insertId: 7 }];
     if (/INSERT INTO order_items/.test(sql)) return [{ affectedRows: 2 }];
     if (/AS item_count/.test(sql)) return [[{ id: 1, order_code: 'MC1', total_amount: '1', subtotal: '1', discount_amount: '0', service_fee: '0', order_type: 'takeaway', payment_method: 'cash', payment_status: 'pending', status: 'pending', item_count: '2' }]];
     if (/COUNT\(\*\) AS total FROM orders/.test(sql)) return [[{ total: 45 }]];
     if (/AS all_orders/.test(sql)) return [[{ all_orders: 45, today_orders: 3, pending_orders: 2, awaiting_payment: 4 }]];
-    if (/AS total, COALESCE/.test(sql)) return [[{ total: 8, occupied: '2' }]];
-    if (/AS reserved/.test(sql)) return [[{ reserved: 1, pending: '3' }]];
-    if (/AS completed/.test(sql)) return [[{ completed: 5 }]];
+        // Dashboard: thống kê trạng thái bàn
+    if (/has_reservation/.test(sql)) {
+        return [[{
+            total: 8,
+            available: '4',
+            occupied: '2',
+            reserved: '1',
+            maintenance: '1',
+        }]];
+    }
+
+    // Dashboard: thống kê đặt bàn hôm nay
+    if (/AS today_bookings/.test(sql)) {
+        return [[{
+            today_bookings: '4',
+            pending_today: '3',
+        }]];
+    }
+
+    // Dashboard: tổng đơn và doanh thu hôm nay
+    if (/AS total_orders/.test(sql)) {
+        return [[{
+            total_orders: '10',
+            completed_orders: '5',
+            paid_orders_today: '2',
+            today_revenue: '150000',
+            yesterday_revenue: '100000',
+            today_key: '2026-11-07',
+        }]];
+    }
+
+    // Dashboard: biểu đồ doanh thu theo ngày hoặc tháng
+    if (/AS period_key/.test(sql)) {
+        return [[
+            {
+                period_key: '2026-11-06',
+                amount: '100000',
+            },
+            {
+                period_key: '2026-11-07',
+                amount: '150000',
+            },
+        ]];
+    }
     return [[]];
 }
 const record = (kind) => async (sql, params) => { calls.push({ kind, sql: String(sql).replace(/\s+/g, ' '), params }); return answer(sql); };
@@ -67,9 +113,59 @@ test('Đăng nhập sai bị từ chối', async () => {
     assert.ok([400, 401].includes(res.status));
 });
 
-test('Dashboard trả đủ 5 chỉ số', async () => {
-    const res = await call('/api/dashboard/stats', { headers: AUTH });
-    assert.deepEqual(res.body, { totalTables: 8, occupiedTables: 2, reservedTables: 1, pendingBookings: 3, completedOrders: 5 });
+test('Dashboard trả số liệu động đầy đủ', async () => {
+    const res = await call(
+        '/api/dashboard/stats?period=7-days',
+        {
+            headers: AUTH,
+        }
+    );
+
+    assert.equal(res.status, 200);
+
+    assert.deepEqual(res.body, {
+        totalTables: 8,
+        availableTables: 4,
+        occupiedTables: 2,
+        reservedTables: 1,
+        maintenanceTables: 1,
+
+        todayBookings: 4,
+        pendingBookings: 3,
+
+        totalOrders: 10,
+        completedOrders: 5,
+        paidOrdersToday: 2,
+
+        todayRevenue: 150000,
+        yesterdayRevenue: 100000,
+
+        todayKey: '2026-11-07',
+
+        revenue: {
+            period: '7-days',
+            total: 250000,
+            series: [
+                {
+                    key: '2026-11-06',
+                    amount: 100000,
+                },
+                {
+                    key: '2026-11-07',
+                    amount: 150000,
+                },
+            ],
+        },
+    });
+
+    const invalidPeriod = await call(
+        '/api/dashboard/stats?period=abc',
+        {
+            headers: AUTH,
+        }
+    );
+
+    assert.equal(invalidPeriod.status, 400);
 });
 
 test('Danh sách đơn có phân trang và số liệu tổng', async () => {
@@ -90,6 +186,15 @@ test('Bộ lọc không hợp lệ bị từ chối', async () => {
     assert.equal((await call('/api/orders?date_from=hôm-qua', { headers: AUTH })).status, 400);
 });
 
+test('Bộ lọc thanh toán chỉ lọc payment_status', async () => {
+    calls.length = 0;
+    const res = await call('/api/orders?payment_status=paid', { headers: AUTH });
+    assert.equal(res.status, 200);
+    const q = calls.find((c) => /AS item_count/.test(c.sql));
+    assert.match(q.sql, /o\.payment_status = \?/);
+    assert.deepEqual(q.params.slice(0, 1), ['paid']);
+});
+
 test('Tạo đơn: thêm tất cả món bằng 1 câu INSERT', async () => {
     calls.length = 0;
     const body = {
@@ -100,6 +205,7 @@ test('Tạo đơn: thêm tất cả món bằng 1 câu INSERT', async () => {
     assert.equal(res.status, 201);
     assert.equal(res.body.data.items.length, 2);
     assert.equal(calls.filter((c) => /INSERT INTO order_items/.test(c.sql)).length, 1);
+    assert.ok(calls.some((c) => /UPDATE coffee_tables SET status = 'occupied'/.test(c.sql)));
     assert.ok(calls.some((c) => c.kind === 'commit'));
 });
 
@@ -107,6 +213,18 @@ test('Tạo đơn: dữ liệu sai bị từ chối', async () => {
     const send = (body) => call('/api/orders', { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify(body) });
     assert.equal((await send({})).status, 400);
     assert.equal((await send({ customer_name: 'A', customer_phone: '123' })).status, 400);
+});
+
+test('Hoàn thành đơn tại bàn sẽ trả bàn khi không còn đơn mở', async () => {
+    calls.length = 0;
+    const res = await call('/api/orders/1/status', {
+        method: 'PATCH',
+        headers: { ...AUTH, ...JSON_HEADERS },
+        body: JSON.stringify({ status: 'completed' }),
+    });
+    assert.equal(res.status, 200);
+    assert.ok(calls.some((c) => /UPDATE coffee_tables[\s\S]*status = 'available'/.test(c.sql)));
+    assert.ok(calls.some((c) => c.kind === 'commit'));
 });
 
 test('Đặt bàn: dữ liệu sai bị từ chối', async () => {

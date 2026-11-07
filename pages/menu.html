@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="no-js">
 
 <head>
   <meta charset="UTF-8" />
@@ -16,12 +16,23 @@
   <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 
+  <!-- Font chữ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+
+  <script>document.documentElement.className = "js";</script>
+
   <!-- CSS của dự án -->
   <link rel="stylesheet" href="../assets/css/style.css" />
   <link rel="stylesheet" href="../assets/css/responsive.css" />
+  <link rel="stylesheet" href="../assets/css/theme.css" />
+  <link rel="stylesheet" href="../assets/css/pages.css" />
 </head>
 
-<body>
+<body class="inner-page">
+  <div class="scroll-progress" aria-hidden="true"></div>
+
   <!-- ==================== HEADER ==================== -->
   <header>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow">
@@ -221,7 +232,7 @@
     <section class="py-5 bg-light">
       <div class="container">
         <!-- Tiêu đề và số lượng kết quả -->
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 reveal">
           <div>
             <p class="text-uppercase text-secondary fw-semibold mb-2">
               Khám phá hương vị
@@ -242,7 +253,7 @@
           <!-- ==================== CÀ PHÊ ==================== -->
 
           <!-- Sản phẩm 1 -->
-          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 product-item" data-id="1" data-name="Cà phê sữa đá"
+          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 product-item reveal" style="--d:0.0s" data-id="1" data-name="Cà phê sữa đá"
             data-category="coffee" data-price="35000">
             <article class="card product-card">
               <div class="position-relative">
@@ -286,7 +297,7 @@
           </div>
 
           <!-- Sản phẩm 2 -->
-          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 product-item" data-id="2" data-name="Bạc xỉu"
+          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 product-item reveal" style="--d:0.08s" data-id="2" data-name="Bạc xỉu"
             data-category="coffee" data-price="39000">
             <article class="card product-card">
               <div class="position-relative">
@@ -329,7 +340,7 @@
           </div>
 
           <!-- Sản phẩm 3 -->
-          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 product-item" data-id="3" data-name="Cà phê đen đá"
+          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 product-item reveal" style="--d:0.16s" data-id="3" data-name="Cà phê đen đá"
             data-category="coffee" data-price="30000">
             <article class="card product-card">
               <div class="position-relative">
@@ -371,7 +382,7 @@
           <!-- ==================== TRÀ TRÁI CÂY ==================== -->
 
           <!-- Sản phẩm 4 -->
-          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 product-item" data-id="4" data-name="Trà đào cam sả"
+          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 product-item reveal" style="--d:0.24s" data-id="4" data-name="Trà đào cam sả"
             data-category="tea" data-price="49000">
             <article class="card product-card">
               <div class="position-relative">
@@ -415,7 +426,7 @@
           </div>
 
           <!-- Sản phẩm 5 -->
-          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 product-item" data-id="5" data-name="Trà vải"
+          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 product-item reveal" style="--d:0.0s" data-id="5" data-name="Trà vải"
             data-category="tea" data-price="45000">
             <article class="card product-card">
               <div class="position-relative">
@@ -454,7 +465,7 @@
           </div>
 
           <!-- Sản phẩm 6 -->
-          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 product-item" data-id="6" data-name="Trà dâu"
+          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 product-item reveal" style="--d:0.08s" data-id="6" data-name="Trà dâu"
             data-category="tea" data-price="47000">
             <article class="card product-card">
               <div class="position-relative">
@@ -495,7 +506,7 @@
           <!-- ==================== ĐÁ XAY ==================== -->
 
           <!-- Sản phẩm 7 -->
-          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 product-item" data-id="7" data-name="Matcha đá xay"
+          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 product-item reveal" style="--d:0.16s" data-id="7" data-name="Matcha đá xay"
             data-category="ice-blended" data-price="55000">
             <article class="card product-card">
               <div class="position-relative">
@@ -539,7 +550,7 @@
           </div>
 
           <!-- Sản phẩm 8 -->
-          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 product-item" data-id="8" data-name="Chocolate đá xay"
+          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 product-item reveal" style="--d:0.24s" data-id="8" data-name="Chocolate đá xay"
             data-category="ice-blended" data-price="59000">
             <article class="card product-card">
               <div class="position-relative">
@@ -579,7 +590,7 @@
           </div>
 
           <!-- Sản phẩm 9 -->
-          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 product-item" data-id="9" data-name="Cookies đá xay"
+          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 product-item reveal" style="--d:0.0s" data-id="9" data-name="Cookies đá xay"
             data-category="ice-blended" data-price="59000">
             <article class="card product-card">
               <div class="position-relative">
@@ -621,7 +632,7 @@
           <!-- ==================== BÁNH NGỌT ==================== -->
 
           <!-- Sản phẩm 10 -->
-          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 product-item" data-id="10" data-name="Bánh tiramisu"
+          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 product-item reveal" style="--d:0.08s" data-id="10" data-name="Bánh tiramisu"
             data-category="cake" data-price="45000">
             <article class="card product-card">
               <div class="position-relative">
@@ -665,7 +676,7 @@
           </div>
 
           <!-- Sản phẩm 11 -->
-          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 product-item" data-id="11" data-name="Bánh croissant"
+          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 product-item reveal" style="--d:0.16s" data-id="11" data-name="Bánh croissant"
             data-category="cake" data-price="35000">
             <article class="card product-card">
               <div class="position-relative">
@@ -705,7 +716,7 @@
           </div>
 
           <!-- Sản phẩm 12 -->
-          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 product-item" data-id="12" data-name="Bánh mousse chocolate"
+          <div class="col-12 col-sm-6 col-lg-4 col-xl-3 product-item reveal" style="--d:0.24s" data-id="12" data-name="Bánh mousse chocolate"
             data-category="cake" data-price="49000">
             <article class="card product-card">
               <div class="position-relative">
@@ -714,6 +725,7 @@
               </div>
 
               <div class="card-body d-flex flex-column">
+                <p class="small text-secondary mb-1">
                   Bánh ngọt
                 </p>
 
@@ -766,7 +778,7 @@
 
     <!-- Phần đặt bàn -->
     <section class="booking-callout py-5">
-      <div class="container text-center text-white">
+      <div class="container text-center text-white reveal">
         <h2 class="fw-bold">Bạn muốn dùng món tại quán?</h2>
 
         <p class="lead mb-4">
@@ -799,15 +811,15 @@
           </p>
 
           <div class="d-flex gap-3">
-            <a href="#" class="text-white fs-5" aria-label="Facebook">
+            <a href="#" class="social-link fs-5" aria-label="Facebook">
               <i class="bi bi-facebook"></i>
             </a>
 
-            <a href="#" class="text-white fs-5" aria-label="Instagram">
+            <a href="#" class="social-link fs-5" aria-label="Instagram">
               <i class="bi bi-instagram"></i>
             </a>
 
-            <a href="#" class="text-white fs-5" aria-label="TikTok">
+            <a href="#" class="social-link fs-5" aria-label="TikTok">
               <i class="bi bi-tiktok"></i>
             </a>
           </div>
@@ -919,5 +931,6 @@
   <script src="../assets/js/client-api.js"></script>
   <script src="../assets/js/main.js"></script>
   <script src="../assets/js/menu.js"></script>
+  <script src="../assets/js/effects.js"></script>
 </body>
 </html>

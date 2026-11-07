@@ -1,0 +1,1030 @@
+/* =========================================================
+   THEME.CSS - MỘC COFFEE (giao diện mới + hiệu ứng)
+   Nạp SAU style.css và responsive.css.
+   Chỉ ghi đè / bổ sung, không xoá style cũ nên các trang
+   khác (menu, giỏ hàng, đặt bàn...) không bị ảnh hưởng
+   trừ khi bạn nạp file này vào các trang đó.
+========================================================= */
+
+/* =========================================================
+   1. BIẾN THIẾT KẾ
+========================================================= */
+
+:root {
+  --moc-primary: #6f4e37;
+  --moc-primary-dark: #3e2723;
+  --moc-accent: #c68b59;
+  --moc-accent-soft: #e7c9a9;
+  --moc-cream: #f7f1ea;
+  --moc-paper: #fbf8f4;
+  --moc-ink: #2a1d17;
+  --moc-green: #557153;
+
+  --moc-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --moc-shadow-sm: 0 6px 18px rgba(62, 39, 35, 0.08);
+  --moc-shadow-md: 0 14px 34px rgba(62, 39, 35, 0.14);
+  --moc-shadow-lg: 0 26px 60px rgba(62, 39, 35, 0.22);
+
+  --moc-font-body: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI",
+    Roboto, Arial, sans-serif;
+  --moc-font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+}
+
+body.home-page {
+  color: var(--moc-ink);
+  background-color: var(--moc-paper);
+  font-family: var(--moc-font-body);
+}
+
+body.home-page ::selection {
+  color: #ffffff;
+  background-color: var(--moc-accent);
+}
+
+body.home-page :focus-visible {
+  outline: 3px solid rgba(198, 139, 89, 0.65);
+  outline-offset: 2px;
+}
+
+body.home-page .bg-light {
+  background-color: var(--moc-cream) !important;
+}
+
+/* =========================================================
+   2. THANH TIẾN ĐỘ CUỘN
+========================================================= */
+
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2000;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--moc-accent), #f0c48f);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  pointer-events: none;
+}
+
+/* =========================================================
+   3. NAVBAR TRONG SUỐT -> KÍNH MỜ KHI CUỘN
+========================================================= */
+
+body.home-page .navbar {
+  background: linear-gradient(
+    180deg,
+    rgba(15, 9, 6, 0.65),
+    rgba(15, 9, 6, 0)
+  ) !important;
+  box-shadow: none !important;
+  transition:
+    background-color 0.35s ease,
+    box-shadow 0.35s ease,
+    min-height 0.35s ease,
+    backdrop-filter 0.35s ease;
+}
+
+body.home-page .navbar.is-scrolled,
+body.home-page .navbar.navbar-scrolled {
+  min-height: 62px;
+  background: rgba(30, 22, 18, 0.86) !important;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22) !important;
+  backdrop-filter: blur(14px) saturate(1.3);
+}
+
+body.home-page .navbar-brand {
+  font-family: var(--moc-font-display);
+  font-size: 24px;
+  letter-spacing: 0.01em;
+}
+
+body.home-page .navbar-brand i {
+  display: inline-block;
+  transition: transform 0.5s var(--moc-ease);
+}
+
+body.home-page .navbar-brand:hover i {
+  transform: rotate(-14deg) scale(1.12);
+}
+
+body.home-page .navbar .btn {
+  border-radius: 999px;
+}
+
+/* =========================================================
+   4. NÚT BẤM
+========================================================= */
+
+.btn-coffee {
+  background-image: linear-gradient(
+    135deg,
+    #8a6347 0%,
+    var(--moc-primary) 45%,
+    #4a3225 100%
+  );
+  background-size: 180% 180%;
+  background-position: 0% 50%;
+  border-color: transparent;
+  box-shadow: 0 6px 16px rgba(111, 78, 55, 0.28);
+  transition:
+    background-position 0.5s ease,
+    box-shadow 0.3s ease,
+    transform 0.3s var(--moc-ease);
+}
+
+.btn-coffee:hover,
+.btn-coffee:focus {
+  background-position: 100% 50%;
+  box-shadow: 0 12px 26px rgba(111, 78, 55, 0.38);
+  transform: translateY(-2px);
+}
+
+.btn-coffee:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.btn-coffee:disabled {
+  background-image: none;
+  box-shadow: none;
+}
+
+.btn-outline-coffee {
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    transform 0.3s var(--moc-ease),
+    box-shadow 0.3s ease;
+}
+
+.btn-outline-coffee:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(111, 78, 55, 0.25);
+}
+
+body.home-page .btn-lg {
+  padding: 0.85rem 1.7rem;
+  border-radius: 999px;
+}
+
+body.home-page .btn-light {
+  transition:
+    transform 0.3s var(--moc-ease),
+    box-shadow 0.3s ease,
+    background-color 0.3s ease;
+}
+
+body.home-page .btn-light:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.22);
+}
+
+body.home-page .btn-sm {
+  border-radius: 999px;
+  padding-right: 0.95rem;
+  padding-left: 0.95rem;
+}
+
+/* =========================================================
+   5. HERO / CAROUSEL
+========================================================= */
+
+#home {
+  position: relative;
+}
+
+body.home-page .carousel-item {
+  overflow: hidden;
+}
+
+body.home-page .carousel-item > img {
+  height: clamp(580px, 100vh, 860px);
+}
+
+body.home-page .carousel-item::after {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(20, 12, 8, 0.84) 0%,
+      rgba(20, 12, 8, 0.5) 46%,
+      rgba(20, 12, 8, 0.12) 100%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.4) 0%,
+      transparent 28%,
+      transparent 68%,
+      rgba(20, 12, 8, 0.55) 100%
+    );
+}
+
+body.home-page .carousel-caption {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  padding: 96px 0 90px;
+}
+
+body.home-page .carousel-caption .container {
+  width: 100%;
+}
+
+body.home-page .banner-content {
+  position: relative;
+  max-width: 680px;
+  padding: clamp(22px, 3vw, 42px);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.13),
+    rgba(255, 255, 255, 0.04)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 26px;
+  box-shadow: 0 26px 64px rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(10px) saturate(1.2);
+}
+
+body.home-page .banner-content > p:first-child {
+  display: inline-flex;
+  gap: 0.6rem;
+  align-items: center;
+  margin-bottom: 1rem !important;
+  padding: 0.4rem 0.95rem;
+  color: #f3dcc2;
+  background: rgba(198, 139, 89, 0.22);
+  border: 1px solid rgba(231, 201, 169, 0.4);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+}
+
+body.home-page .banner-content h1,
+body.home-page .banner-content h2 {
+  font-family: var(--moc-font-display);
+  font-size: clamp(2rem, 4.6vw, 3.6rem);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+}
+
+body.home-page .banner-content .lead {
+  color: rgba(255, 255, 255, 0.88);
+  font-weight: 400;
+}
+
+body.home-page .carousel-indicators {
+  margin-bottom: 2rem;
+}
+
+body.home-page .carousel-indicators [data-bs-target] {
+  width: 30px;
+  height: 4px;
+  background-color: #ffffff;
+  opacity: 0.4;
+  transition:
+    width 0.4s var(--moc-ease),
+    opacity 0.3s ease,
+    background-color 0.3s ease;
+}
+
+body.home-page .carousel-indicators .active {
+  width: 58px;
+  background-color: var(--moc-accent);
+  opacity: 1;
+}
+
+body.home-page .carousel-control-prev-icon,
+body.home-page .carousel-control-next-icon {
+  background-color: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(6px);
+  transition:
+    background-color 0.3s ease,
+    transform 0.3s var(--moc-ease);
+}
+
+body.home-page .carousel-control-prev:hover .carousel-control-prev-icon,
+body.home-page .carousel-control-next:hover .carousel-control-next-icon {
+  background-color: var(--moc-accent);
+  transform: scale(1.12);
+}
+
+/* Gợi ý cuộn xuống */
+
+.scroll-cue {
+  position: absolute;
+  right: max(24px, 6vw);
+  bottom: 34px;
+  z-index: 5;
+  display: block;
+}
+
+.scroll-cue-mouse {
+  display: block;
+  width: 26px;
+  height: 42px;
+  border: 2px solid rgba(255, 255, 255, 0.75);
+  border-radius: 14px;
+}
+
+.scroll-cue-mouse span {
+  display: block;
+  width: 4px;
+  height: 8px;
+  margin: 7px auto 0;
+  background-color: #ffffff;
+  border-radius: 4px;
+}
+
+/* =========================================================
+   6. TIỆN ÍCH NỔI BẬT (đè nhẹ lên hero)
+========================================================= */
+
+.features-section {
+  position: relative;
+  z-index: 6;
+  margin-top: -84px;
+  padding-bottom: 3rem;
+}
+
+.feature-card {
+  height: 100%;
+  padding: 2rem 1.6rem;
+  text-align: center;
+  background-color: #ffffff;
+  border: 1px solid rgba(111, 78, 55, 0.06);
+  border-radius: 22px;
+  box-shadow: var(--moc-shadow-md);
+  transition:
+    transform 0.45s var(--moc-ease),
+    box-shadow 0.45s var(--moc-ease);
+}
+
+.feature-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--moc-shadow-lg);
+}
+
+.feature-card .feature-icon {
+  width: 78px;
+  height: 78px;
+  color: var(--moc-primary);
+  background: linear-gradient(135deg, #f8e8d6, #efd3b4);
+  transition:
+    transform 0.5s var(--moc-ease),
+    background 0.4s ease,
+    color 0.4s ease;
+}
+
+.feature-card:hover .feature-icon {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--moc-accent), var(--moc-primary));
+  transform: rotate(-8deg) scale(1.08);
+}
+
+/* =========================================================
+   7. TIÊU ĐỀ MỤC
+========================================================= */
+
+body.home-page .section-title {
+  position: relative;
+  color: var(--moc-primary-dark);
+  font-family: var(--moc-font-display);
+  font-size: clamp(1.8rem, 3.2vw, 2.65rem);
+  line-height: 1.2;
+}
+
+body.home-page .section-title::after {
+  display: block;
+  width: 58px;
+  height: 3px;
+  margin: 14px 0 0;
+  background: linear-gradient(90deg, var(--moc-accent), var(--moc-primary));
+  border-radius: 3px;
+  content: "";
+}
+
+body.home-page .text-center .section-title::after {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+body.home-page p.text-uppercase.text-secondary {
+  color: var(--moc-accent) !important;
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+}
+
+/* =========================================================
+   8. DANH MỤC
+========================================================= */
+
+body.home-page .category-card {
+  border-radius: 22px;
+  box-shadow: var(--moc-shadow-sm);
+  transition:
+    transform 0.5s var(--moc-ease),
+    box-shadow 0.5s var(--moc-ease);
+}
+
+body.home-page .category-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--moc-shadow-lg);
+}
+
+body.home-page .category-card img {
+  display: block;
+  aspect-ratio: 4 / 5;
+  height: auto;
+  transition: transform 0.8s var(--moc-ease);
+}
+
+body.home-page .category-card:hover img {
+  transform: scale(1.1);
+}
+
+body.home-page .category-card::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 42%,
+    rgba(25, 14, 9, 0.86) 100%
+  );
+  content: "";
+  pointer-events: none;
+}
+
+body.home-page .category-content {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.25rem;
+  text-align: left;
+  background: none;
+}
+
+body.home-page .category-content h3 {
+  font-family: var(--moc-font-display);
+  font-size: clamp(1rem, 1.6vw, 1.3rem);
+}
+
+body.home-page .category-content::after {
+  display: grid;
+  flex: 0 0 36px;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 50%;
+  backdrop-filter: blur(6px);
+  content: "\f138";
+  font-family: "bootstrap-icons";
+  font-size: 0.95rem;
+  transition:
+    background-color 0.3s ease,
+    transform 0.4s var(--moc-ease);
+}
+
+body.home-page .category-card:hover .category-content::after {
+  background: var(--moc-accent);
+  transform: translateX(5px);
+}
+
+/* =========================================================
+   9. CARD SẢN PHẨM
+========================================================= */
+
+body.home-page .product-card {
+  border-radius: 22px;
+  box-shadow: var(--moc-shadow-sm);
+  animation: none;
+  transition:
+    transform 0.5s var(--moc-ease),
+    box-shadow 0.5s var(--moc-ease);
+}
+
+body.home-page .product-card:hover {
+  transform: translateY(-10px);
+  box-shadow: var(--moc-shadow-lg);
+}
+
+body.home-page .product-card img {
+  aspect-ratio: 5 / 4;
+  height: auto;
+  transition: transform 0.8s var(--moc-ease);
+}
+
+body.home-page .product-card:hover img {
+  transform: scale(1.08);
+}
+
+body.home-page .product-card .badge {
+  border-radius: 999px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+}
+
+body.home-page .product-card .card-body > p.small {
+  color: var(--moc-accent) !important;
+  font-size: 0.7rem !important;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+body.home-page .product-card .card-title {
+  font-size: 1.12rem;
+}
+
+body.home-page .product-card .card-text {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 0.9rem;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+body.home-page .product-card .mt-auto {
+  padding-top: 0.95rem;
+  border-top: 1px dashed rgba(111, 78, 55, 0.22);
+}
+
+body.home-page .product-card .text-danger {
+  color: var(--moc-primary) !important;
+  font-size: 1.2rem;
+}
+
+/* =========================================================
+   10. GIỚI THIỆU
+========================================================= */
+
+.about-media {
+  position: relative;
+  padding: 0 20px 20px 0;
+}
+
+.about-media::before {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 78%;
+  height: 78%;
+  border: 3px solid var(--moc-accent);
+  border-radius: 26px;
+  content: "";
+  opacity: 0.55;
+  transition: transform 0.6s var(--moc-ease);
+}
+
+.about-media:hover::before {
+  transform: translate(8px, 8px);
+}
+
+.about-media img {
+  position: relative;
+  z-index: 1;
+  border-radius: 26px;
+  box-shadow: var(--moc-shadow-md);
+}
+
+#about .col-6 > .d-flex {
+  height: 100%;
+  padding: 0.65rem 0.85rem;
+  background-color: #ffffff;
+  border-radius: 14px;
+  box-shadow: var(--moc-shadow-sm);
+  transition:
+    transform 0.35s var(--moc-ease),
+    box-shadow 0.35s var(--moc-ease);
+}
+
+#about .col-6 > .d-flex:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--moc-shadow-md);
+}
+
+/* =========================================================
+   11. QUY TRÌNH
+========================================================= */
+
+.process-row > div {
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .process-row > div:not(:last-child)::after {
+    position: absolute;
+    top: 70px;
+    right: -14px;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    color: var(--moc-accent);
+    background-color: #ffffff;
+    border-radius: 50%;
+    box-shadow: var(--moc-shadow-sm);
+    content: "\f285";
+    font-family: "bootstrap-icons";
+    font-size: 0.8rem;
+  }
+}
+
+body.home-page .process-card {
+  padding: 38px 26px 32px;
+  overflow: hidden;
+  border: 1px solid rgba(111, 78, 55, 0.06);
+  border-radius: 22px;
+  animation: none;
+  transition:
+    transform 0.45s var(--moc-ease),
+    box-shadow 0.45s var(--moc-ease);
+}
+
+body.home-page .process-card::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--moc-accent), var(--moc-primary));
+  content: "";
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s var(--moc-ease);
+}
+
+body.home-page .process-card:hover::before {
+  transform: scaleX(1);
+}
+
+body.home-page .process-number {
+  background: linear-gradient(135deg, var(--moc-accent), var(--moc-primary));
+  box-shadow: 0 6px 14px rgba(111, 78, 55, 0.3);
+}
+
+body.home-page .process-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  background-color: var(--moc-cream);
+  border-radius: 50%;
+  font-size: 2.1rem;
+  transition:
+    transform 0.5s var(--moc-ease),
+    background 0.4s ease,
+    color 0.4s ease;
+}
+
+body.home-page .process-card:hover .process-icon {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--moc-accent), var(--moc-primary));
+  transform: translateY(-4px) rotate(-6deg);
+}
+
+/* =========================================================
+   12. KÊU GỌI ĐẶT BÀN
+========================================================= */
+
+body.home-page .booking-callout {
+  padding-top: 5rem !important;
+  padding-bottom: 5rem !important;
+  background:
+    radial-gradient(rgba(255, 255, 255, 0.07) 1.2px, transparent 1.5px) 0 0 /
+      24px 24px,
+    linear-gradient(
+      135deg,
+      rgba(62, 39, 35, 0.97),
+      rgba(111, 78, 55, 0.93)
+    );
+}
+
+body.home-page .booking-callout h2 {
+  font-family: var(--moc-font-display);
+  font-size: clamp(1.8rem, 3.6vw, 2.8rem);
+}
+
+/* =========================================================
+   13. FOOTER
+========================================================= */
+
+footer {
+  position: relative;
+}
+
+footer::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--moc-primary-dark),
+    var(--moc-accent),
+    var(--moc-primary-dark)
+  );
+  content: "";
+}
+
+footer h2 {
+  font-family: var(--moc-font-display);
+}
+
+.social-link {
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  transition:
+    background-color 0.3s ease,
+    transform 0.35s var(--moc-ease);
+}
+
+.social-link:hover {
+  background-color: var(--moc-accent);
+  transform: translateY(-4px);
+}
+
+/* =========================================================
+   14. NÚT LÊN ĐẦU TRANG
+========================================================= */
+
+#back-to-top {
+  background-image: linear-gradient(
+    135deg,
+    var(--moc-accent),
+    var(--moc-primary)
+  );
+  border: none;
+}
+
+#back-to-top:hover {
+  transform: translateY(-4px);
+}
+
+/* =========================================================
+   15. HIỆU ỨNG HIỆN DẦN KHI CUỘN
+========================================================= */
+
+.js .reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition:
+    opacity 0.85s var(--moc-ease),
+    transform 0.85s var(--moc-ease);
+  transition-delay: var(--d, 0s);
+  will-change: opacity, transform;
+}
+
+.js .reveal-left {
+  transform: translateX(-44px);
+}
+
+.js .reveal-right {
+  transform: translateX(44px);
+}
+
+.js .reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* =========================================================
+   16. HOẠT ẢNH (chỉ khi người dùng không tắt chuyển động)
+========================================================= */
+
+@keyframes moc-hero-up {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes moc-kenburns {
+  from {
+    transform: scale(1.02);
+  }
+
+  to {
+    transform: scale(1.12);
+  }
+}
+
+@keyframes moc-float {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+
+  to {
+    transform: translate(18px, -22px) scale(1.06);
+  }
+}
+
+@keyframes moc-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.45);
+  }
+
+  70% {
+    box-shadow: 0 0 0 18px rgba(255, 255, 255, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  }
+}
+
+@keyframes moc-scroll-dot {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@keyframes moc-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(6px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  body.home-page .carousel-item.active > img {
+    animation: moc-kenburns 9s ease-out both;
+  }
+
+  body.home-page .carousel-item.active .banner-content > * {
+    animation: moc-hero-up 0.85s var(--moc-ease) both;
+  }
+
+  body.home-page .carousel-item.active .banner-content > :nth-child(1) {
+    animation-delay: 0.1s;
+  }
+
+  body.home-page .carousel-item.active .banner-content > :nth-child(2) {
+    animation-delay: 0.25s;
+  }
+
+  body.home-page .carousel-item.active .banner-content > :nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  body.home-page .carousel-item.active .banner-content > :nth-child(4) {
+    animation-delay: 0.55s;
+  }
+
+  .scroll-cue {
+    animation: moc-bob 2s ease-in-out infinite;
+  }
+
+  .scroll-cue-mouse span {
+    animation: moc-scroll-dot 1.8s ease-in-out infinite;
+  }
+
+  .booking-callout::before,
+  .booking-callout::after {
+    animation: moc-float 12s ease-in-out infinite alternate;
+  }
+
+  .booking-callout .btn-light {
+    animation: moc-pulse 2.4s ease-out infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* =========================================================
+   17. RESPONSIVE BỔ SUNG
+========================================================= */
+
+@media (max-width: 767.98px) {
+  .features-section {
+    margin-top: -48px;
+  }
+
+  body.home-page .carousel-caption {
+    padding: 84px 0 70px;
+  }
+
+  body.home-page .banner-content {
+    padding: 22px 18px;
+    border-radius: 20px;
+  }
+
+  .scroll-cue {
+    display: none;
+  }
+
+  .about-media {
+    padding: 0 12px 12px 0;
+  }
+
+  body.home-page .booking-callout {
+    padding-top: 3.5rem !important;
+    padding-bottom: 3.5rem !important;
+  }
+}
+
+/* Nút chuyển banner nằm sát mép, không đè lên khung nội dung */
+@media (min-width: 992px) {
+  body.home-page .carousel-control-prev,
+  body.home-page .carousel-control-next {
+    width: 56px;
+  }
+}
+
+/* =========================================================
+   18. BANNER: KÉO ĐỂ CHUYỂN + THANH THỜI GIAN TỰ CHẠY
+========================================================= */
+
+#mainCarousel {
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#mainCarousel.is-dragging {
+  cursor: grabbing;
+}
+
+#mainCarousel .banner-content,
+#mainCarousel .banner-content * {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+#mainCarousel .carousel-item > img {
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+/* Chỉ báo đang chọn chạy dần theo thời gian chuyển slide (5 giây) */
+@keyframes moc-indicator-fill {
+  from {
+    background-size: 0% 100%;
+  }
+
+  to {
+    background-size: 100% 100%;
+  }
+}
+
+body.home-page .carousel-indicators [data-bs-target].active {
+  background-color: rgba(255, 255, 255, 0.4);
+  background-image: linear-gradient(var(--moc-accent), var(--moc-accent));
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: 100% 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  body.home-page .carousel-indicators [data-bs-target].active {
+    animation: moc-indicator-fill 5s linear both;
+  }
+
+  body.home-page #mainCarousel.is-dragging .carousel-indicators .active {
+    animation-play-state: paused;
+  }
+}

@@ -687,6 +687,7 @@ document.addEventListener("DOMContentLoaded", function () {
       imagePreview.src = DEFAULT_PRODUCT_IMAGE;
       imageInput.value = "";
       statusInput.value = "1";
+      $("#submit-product-button-label").textContent = "Thêm món";
     }
 
     function openProductDetail(product) {
@@ -737,6 +738,7 @@ document.addEventListener("DOMContentLoaded", function () {
       imageInput.value = "";
       imagePreview.src = getProductImageUrl(product);
       productForm.classList.remove("was-validated");
+      $("#submit-product-button-label").textContent = "Lưu thay đổi";
 
       showModal("#product-form-modal");
     }

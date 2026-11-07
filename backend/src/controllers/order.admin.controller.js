@@ -139,12 +139,6 @@ const getOrders = async (req, res) => {
 
     if (payment_status) {
         if (!PAYMENT_STATUSES.includes(payment_status)) return sendError(res, 400, "Trạng thái thanh toán không hợp lệ");
-        conditions.push("o.status = ?");
-        params.push(status);
-    }
-
-    if (payment_status) {
-        if (!PAYMENT_STATUSES.includes(payment_status)) return sendError(res, 400, "Trạng thái thanh toán không hợp lệ");
         conditions.push("o.payment_status = ?");
         params.push(payment_status);
     }
@@ -304,7 +298,7 @@ const updateOrderStatus = async (req, res) => {
 
         // Khóa dòng đơn để hai người cùng bấm một lúc không ghi đè nhau
         const [rows] = await connection.execute(
-            "SELECT id, status, payment_status FROM orders WHERE id = ? FOR UPDATE",
+            "SELECT id, status, payment_status, order_type, table_code FROM orders WHERE id = ? FOR UPDATE",
             [id]
         );
 
@@ -331,6 +325,44 @@ const updateOrderStatus = async (req, res) => {
         }
 
         await connection.execute("UPDATE orders SET status = ? WHERE id = ?", [newStatus, id]);
+
+        // Trả bàn khi đơn kết thúc/hủy, nhưng chỉ khi bàn không còn đơn mở
+        // và cũng không có booking đang phục vụ.
+        if (
+            order.order_type === "at_table" &&
+            order.table_code &&
+            (newStatus === "completed" || newStatus === "cancelled")
+        ) {
+            const [openOrders] = await connection.execute(
+                `SELECT id
+                   FROM orders
+                  WHERE table_code = ?
+                    AND id <> ?
+                    AND status <> 'cancelled'
+                    AND (status <> 'completed' OR payment_status NOT IN ('paid', 'refunded'))
+                  LIMIT 1
+                  FOR UPDATE`,
+                [order.table_code, id]
+            );
+            const [seatedBookings] = await connection.execute(
+                `SELECT b.id
+                   FROM bookings b
+                   INNER JOIN coffee_tables t ON t.id = b.table_id
+                  WHERE t.table_code = ? AND b.status = 'seated'
+                  LIMIT 1
+                  FOR UPDATE`,
+                [order.table_code]
+            );
+
+            if (!openOrders.length && !seatedBookings.length) {
+                await connection.execute(
+                    `UPDATE coffee_tables
+                        SET status = 'available'
+                      WHERE table_code = ? AND status = 'occupied'`,
+                    [order.table_code]
+                );
+            }
+        }
         await connection.commit();
 
         return res.json({

@@ -45,6 +45,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var resetBtn = A.fresh('reset-order-filter');
     var refreshBtn = A.fresh('refresh-orders-button');
     var nextBtn = A.fresh('detail-next-status-button');
+    var detailPaymentBtn = A.fresh('detail-confirm-payment-button');
     var tabsBox = document.getElementById('order-status-tabs');
     var activeTab = 'all';
     var PAGE_SIZE = 20;
@@ -291,8 +292,13 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (nextBtn) {
             var n = NEXT[o.status];
+            nextBtn.disabled = false;
             nextBtn.classList.toggle('d-none', !n);
             if (n) nextBtn.lastChild.textContent = ' ' + n.label;
+        }
+        if (detailPaymentBtn) {
+            detailPaymentBtn.disabled = false;
+            detailPaymentBtn.classList.toggle('d-none', !awaitingPayment(o));
         }
     }
 
@@ -356,6 +362,15 @@ document.addEventListener('DOMContentLoaded', function () {
         if (await changeStatus(id, NEXT[detailOrder.status].to, nextBtn)) {
             var res = await A.api('/api/orders/' + encodeURIComponent(id));
             fillDetail(res.data); // cập nhật lại nội dung đang mở
+        }
+    });
+
+    if (detailPaymentBtn) detailPaymentBtn.addEventListener('click', async function () {
+        if (!detailOrder || !awaitingPayment(detailOrder)) return;
+        var id = detailOrder.id;
+        if (await confirmPayment(id, detailPaymentBtn)) {
+            var res = await A.api('/api/orders/' + encodeURIComponent(id));
+            fillDetail(res.data);
         }
     });
 

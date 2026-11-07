@@ -32,7 +32,7 @@ Cấu trúc sáu chương (mỗi chương khớp với phân công ở trên):
 2. **Cơ sở lý thuyết về RESTful Web Services** – 6 ràng buộc của Fielding, resource/representation/URI, HTTP methods ↔ CRUD, mã trạng thái, JWT so với OAuth 2.0 / API Key, thực hành tốt, bảng so sánh REST – GraphQL – SOAP.
 3. **Phân tích yêu cầu** – 2 tác nhân, 19 yêu cầu chức năng, 9 quy tắc nghiệp vụ, 11 yêu cầu phi chức năng, use case + 3 đặc tả.
 4. **Thiết kế hệ thống & kiến trúc RESTful API** – kiến trúc 3 lớp, ERD, danh mục 26 endpoint, format phản hồi, lọc/tìm kiếm/sắp xếp/phân trang, thiết kế bảo mật, Multer, giao dịch, sequence & state diagram.
-5. **Cài đặt, kiểm thử & đánh giá** – môi trường, 11/11 ca kiểm thử tự động, 17 ca kiểm thử API bằng curl, đối chiếu màn hình ↔ API, ảnh chụp giao diện khách & admin, ma trận xác thực/phân quyền, kết quả 31 hạng mục thủ công.
+5. **Cài đặt, kiểm thử & đánh giá** – môi trường, 13/13 ca kiểm thử tự động, 17 ca kiểm thử API bằng curl, đối chiếu màn hình ↔ API, ảnh chụp giao diện khách & admin, ma trận xác thực/phân quyền, kết quả 31 hạng mục thủ công.
 6. **Kết luận & hướng phát triển** + Tài liệu tham khảo.
 
 Số liệu để đối chiếu nhanh giữa báo cáo và mã nguồn: **26 endpoint**, **34 bảng**, **22 hình**. Khi mở bằng bản gốc chưa cập nhật field, trong Word nhấn **Ctrl + A rồi F9** (hoặc chọn cập nhật khi được hỏi) để sinh mục lục và danh sách hình/bảng.
@@ -63,7 +63,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 **4. Tạo tài khoản admin**
 ```bash
-npm run create-admin -- admin@moccoffee.vn "MatKhauManh123" "Quản lý"
+npm run create-admin -- admin@moccoffee.local admin12345678 "Quản lý"
 ```
 
 **5. Chạy**
@@ -74,9 +74,9 @@ Mở http://localhost:5000 (khách) và http://localhost:5000/admin/login.html (
 
 ## Kiểm tra nhanh
 ```bash
-node --test tests/smoke.test.js
+npm test
 ```
-Bộ kiểm thử tự động dùng Node test runner (không cần MySQL, kết nối CSDL được thay bằng bản giả) — 11 ca, là bằng chứng cho mục *Kiểm thử tự động* trong Chương 5 của báo cáo. Kiểm tra database của bạn có đúng cấu trúc không: `npm run check-db`. Danh sách 31 hạng mục kiểm thử thủ công để nộp: `docs/KIEM_THU_THU_CONG.md`.
+Bộ kiểm thử tự động dùng Node test runner (không cần MySQL, kết nối CSDL được thay bằng bản giả) — 13 ca, là bằng chứng cho mục *Kiểm thử tự động* trong Chương 5 của báo cáo. Kiểm tra database của bạn có đúng cấu trúc không: `npm run check-db`. Danh sách 31 hạng mục kiểm thử thủ công để nộp: `docs/KIEM_THU_THU_CONG.md`.
 
 ## Xử lý lỗi thường gặp
 **Trang admin báo "Lỗi máy chủ", "Lỗi truy vấn cơ sở dữ liệu", "Không thể lấy danh sách đặt bàn"...**
@@ -133,7 +133,7 @@ routes/              auth, bookings, tables, dashboard
 backend/src/         controllers + routes + upload cho sản phẩm, danh mục, đơn hàng
 backend/uploads/     Ảnh sản phẩm do admin tải lên (không đưa lên git)
 database/            schema.sql và các file migrations
-scripts/             create-admin.js
+scripts/             create-admin.js và check-db.js
 tests/               Kiểm tra tự động (node --test tests/smoke.test.js)
 docs/                Tài liệu, bảng kiểm thử thủ công
 report/              Báo cáo giữa kỳ 503073 – Restful Web Services (Word + template + đề bài)

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="no-js">
 
 <head>
   <meta charset="UTF-8" />
@@ -16,12 +16,23 @@
   <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 
+  <!-- Font chữ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+
+  <script>document.documentElement.className = "js";</script>
+
   <!-- CSS của dự án -->
   <link rel="stylesheet" href="../assets/css/style.css" />
   <link rel="stylesheet" href="../assets/css/responsive.css" />
+  <link rel="stylesheet" href="../assets/css/theme.css" />
+  <link rel="stylesheet" href="../assets/css/pages.css" />
 </head>
 
-<body class="bg-light">
+<body class="bg-light inner-page">
+  <div class="scroll-progress" aria-hidden="true"></div>
+
   <!-- ==================== HEADER ==================== -->
   <header>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow">
@@ -99,7 +110,7 @@
         <div class="row justify-content-center">
           <div class="col-12 col-lg-9">
             <!-- Thông báo thành công -->
-            <div class="card border-0 shadow-sm text-center success-card">
+            <div class="reveal card border-0 shadow-sm text-center success-card">
               <div class="card-body p-4 p-md-5">
                 <div class="success-icon-large mb-4">
                   <i class="bi bi-check-lg"></i>
@@ -134,7 +145,7 @@
             </div>
 
             <!-- ==================== KẾT QUẢ ĐẶT BÀN ==================== -->
-            <div id="booking-result" class="card border-0 shadow-sm mt-4 d-none">
+            <div id="booking-result" class="reveal card border-0 shadow-sm mt-4 d-none">
               <div class="card-header bg-white p-4">
                 <h2 class="h4 mb-1">
                   <i class="bi bi-calendar2-check text-success me-2"></i>
@@ -285,7 +296,7 @@
             </div>
 
             <!-- ==================== KẾT QUẢ THANH TOÁN ==================== -->
-            <div id="payment-result" class="card border-0 shadow-sm mt-4 d-none">
+            <div id="payment-result" class="reveal card border-0 shadow-sm mt-4 d-none">
               <div class="card-header bg-white p-4">
                 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center">
                   <div>
@@ -460,7 +471,7 @@
             </div>
 
             <!-- Không tìm thấy dữ liệu -->
-            <div id="empty-result" class="card border-0 shadow-sm text-center mt-4 d-none">
+            <div id="empty-result" class="reveal card border-0 shadow-sm text-center mt-4 d-none">
               <div class="card-body py-5">
                 <i class="bi bi-file-earmark-x display-3 text-secondary"></i>
 
@@ -497,7 +508,7 @@
             </div>
 
             <!-- Hỗ trợ -->
-            <div class="card border-0 shadow-sm mt-4">
+            <div class="reveal card border-0 shadow-sm mt-4">
               <div class="card-body p-4">
                 <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between">
                   <div class="d-flex align-items-center">
@@ -544,15 +555,15 @@
           </p>
 
           <div class="d-flex gap-3">
-            <a href="#" class="text-white fs-5" aria-label="Facebook">
+            <a href="#" class="social-link fs-5" aria-label="Facebook">
               <i class="bi bi-facebook"></i>
             </a>
 
-            <a href="#" class="text-white fs-5" aria-label="Instagram">
+            <a href="#" class="social-link fs-5" aria-label="Instagram">
               <i class="bi bi-instagram"></i>
             </a>
 
-            <a href="#" class="text-white fs-5" aria-label="TikTok">
+            <a href="#" class="social-link fs-5" aria-label="TikTok">
               <i class="bi bi-tiktok"></i>
             </a>
           </div>
@@ -681,6 +692,7 @@
   <!-- JavaScript của dự án -->
   <script src="../assets/js/main.js"></script>
   <script src="../assets/js/success.js"></script>
+  <script src="../assets/js/effects.js"></script>
 </body>
 
 </html>

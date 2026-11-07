@@ -217,29 +217,6 @@ const createOrder = async (req, res) => {
             });
         }
 
-        // Đơn tại bàn: bàn phải có thật và không đang bảo trì
-        // (tránh ai đó gửi mã bàn bậy làm kẹt thao tác đổi trạng thái bàn ở trang admin)
-        if (order.orderType === "at_table") {
-            const [tableRows] = await pool.execute(
-                "SELECT status FROM coffee_tables WHERE table_code = ? LIMIT 1",
-                [order.tableCode]
-            );
-
-            if (!tableRows.length) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Mã bàn không tồn tại",
-                });
-            }
-
-            if (tableRows[0].status === "maintenance") {
-                return res.status(409).json({
-                    success: false,
-                    message: "Bàn đang bảo trì, vui lòng chọn bàn khác",
-                });
-            }
-        }
-
         const calculatedItems = order.items.map((item) => {
             const product = productMap.get(item.productId);
             const toppingPrice = item.toppings.reduce(
@@ -283,6 +260,36 @@ const createOrder = async (req, res) => {
 
         connection = await pool.getConnection();
         await connection.beginTransaction();
+
+        // Khóa và cập nhật bàn trong cùng transaction với đơn hàng.
+        // Nhờ vậy không có trạng thái đơn đã tạo nhưng sơ đồ vẫn báo bàn trống.
+        if (order.orderType === "at_table") {
+            const [tableRows] = await connection.execute(
+                `SELECT id, status
+                   FROM coffee_tables
+                  WHERE table_code = ?
+                  LIMIT 1
+                  FOR UPDATE`,
+                [order.tableCode]
+            );
+
+            if (!tableRows.length) {
+                const error = new Error("Mã bàn không tồn tại");
+                error.httpStatus = 400;
+                throw error;
+            }
+
+            if (tableRows[0].status === "maintenance") {
+                const error = new Error("Bàn đang bảo trì, vui lòng chọn bàn khác");
+                error.httpStatus = 409;
+                throw error;
+            }
+
+            await connection.execute(
+                "UPDATE coffee_tables SET status = 'occupied' WHERE id = ?",
+                [tableRows[0].id]
+            );
+        }
 
         const [orderResult] = await connection.execute(
             `INSERT INTO orders (
@@ -410,9 +417,11 @@ const createOrder = async (req, res) => {
 
         console.error("Lỗi tạo đơn hàng:", error);
 
-        return res.status(500).json({
+        return res.status(error.httpStatus || 500).json({
             success: false,
-            message: dbErrorMessage(error, "Lỗi máy chủ khi tạo đơn hàng"),
+            message: error.httpStatus
+                ? error.message
+                : dbErrorMessage(error, "Lỗi máy chủ khi tạo đơn hàng"),
         });
     } finally {
         connection?.release();
