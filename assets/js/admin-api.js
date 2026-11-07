@@ -363,6 +363,24 @@ document.addEventListener("DOMContentLoaded", function () {
     const imageInput = $("#admin-product-image");
     const imagePreview = $("#product-image-preview");
 
+    [
+      "#total-product-count",
+      "#available-product-count",
+      "#unavailable-product-count",
+      "#hidden-product-count",
+    ].forEach(function (selector) {
+      const element = $(selector);
+      if (element) element.textContent = "—";
+    });
+
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="7" class="text-center text-secondary py-4">
+          Đang tải danh sách sản phẩm...
+        </td>
+      </tr>
+    `;
+
     statusFilter.innerHTML = `
       <option value="all">Tất cả</option>
       <option value="1">Đang bán</option>
@@ -507,7 +525,7 @@ document.addEventListener("DOMContentLoaded", function () {
               <td>#SP${String(product.id).padStart(3, "0")}</td>
               <td>${escapeHtml(product.category_name)}</td>
               <td class="fw-semibold">${formatCurrency(product.price)}</td>
-              <td>0</td>
+              <td>${Number(product.sold_count || 0)}</td>
               <td>
                 <span class="badge ${information.className}">
                   ${information.text}
@@ -703,7 +721,8 @@ document.addEventListener("DOMContentLoaded", function () {
       );
       $("#detail-product-description").textContent =
         product.description || "Chưa có mô tả.";
-      $("#detail-product-sold").textContent = "Chưa thống kê";
+      $("#detail-product-sold").textContent =
+        `${Number(product.sold_count || 0)} phần`;
       $("#detail-product-featured").textContent = "Chưa hỗ trợ";
       $("#detail-product-updated").textContent = formatDate(
         product.updated_at
@@ -971,6 +990,25 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
+    const tableBody = $("#product-table-body");
+    if (tableBody) {
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="7" class="text-center text-danger py-4">
+            Không tải được danh sách sản phẩm.
+          </td>
+        </tr>
+      `;
+    }
+    [
+      "#total-product-count",
+      "#available-product-count",
+      "#unavailable-product-count",
+      "#hidden-product-count",
+    ].forEach(function (selector) {
+      const element = $(selector);
+      if (element) element.textContent = "—";
+    });
     showToast(error.message, "danger");
   });
 });

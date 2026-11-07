@@ -145,16 +145,35 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   try {
+    productList.innerHTML = `
+      <div class="col-12 text-center py-5">
+        <div class="spinner-border text-secondary" role="status"></div>
+        <p class="text-secondary mt-3 mb-0">Đang tải món nổi bật...</p>
+      </div>
+    `;
+
     const products = await window.MocCoffeeApi.getProducts();
 
     if (products.length > 0) {
       renderProducts(products);
+    } else {
+      productList.innerHTML = `
+        <div class="col-12 text-center text-secondary py-5">
+          Hiện chưa có sản phẩm đang bán.
+        </div>
+      `;
     }
   } catch (error) {
     console.error(
       "Không thể tải món nổi bật từ API:",
       error
     );
-    // Giữ lại các thẻ HTML mẫu nếu backend chưa chạy.
+    productList.innerHTML = `
+      <div class="col-12">
+        <div class="alert alert-danger text-center mb-0" role="alert">
+          Không thể tải món nổi bật. Vui lòng thử lại sau.
+        </div>
+      </div>
+    `;
   }
 });

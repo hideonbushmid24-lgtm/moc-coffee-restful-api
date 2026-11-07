@@ -88,9 +88,125 @@
         return clone;
     }
 
+    function setBadge(badge, value) {
+        if (!badge) return;
+        var count = Math.max(0, Number(value) || 0);
+        badge.textContent = count;
+        badge.classList.toggle('d-none', count === 0);
+    }
+
+    function updateSidebarBadges(stats, orderSummary) {
+        document.querySelectorAll('.admin-menu a[href="bookings.html"] .badge')
+            .forEach(function (badge) {
+                setBadge(badge, stats.pendingBookings);
+            });
+
+        var openOrders =
+            Number(orderSummary.pending_orders || 0) +
+            Number(orderSummary.preparing_orders || 0) +
+            Number(orderSummary.ready_orders || 0);
+
+        document.querySelectorAll('.admin-menu a[href="orders.html"] .badge')
+            .forEach(function (badge) {
+                setBadge(badge, openOrders);
+            });
+    }
+
+    function renderNotifications(stats) {
+        var menu = document.querySelector('.admin-notifications');
+        if (!menu) return;
+        menu.classList.remove('d-none');
+
+        var items = [];
+
+        (stats.upcomingBookings || []).forEach(function (booking) {
+            items.push({
+                href: 'bookings.html',
+                title: 'Đặt bàn ' + (booking.tableCode || ''),
+                detail: (booking.customerName || 'Khách hàng') +
+                    ' · ' + String(booking.bookingTime || '').slice(0, 5),
+            });
+        });
+
+        (stats.recentOrders || []).forEach(function (order) {
+            if (order.status === 'completed' || order.status === 'cancelled') return;
+            items.push({
+                href: 'orders.html',
+                title: 'Đơn hàng ' + (order.orderCode || ''),
+                detail: order.orderType === 'takeaway'
+                    ? 'Đơn mang đi'
+                    : 'Bàn ' + (order.tableCode || 'chưa chọn'),
+            });
+        });
+
+        items = items.slice(0, 5);
+        menu.innerHTML = '<li><h6 class="dropdown-header">Thông báo mới</h6></li>' +
+            (items.length
+                ? items.map(function (item) {
+                    return '<li><a class="dropdown-item" href="' + esc(item.href) + '">' +
+                        '<strong>' + esc(item.title) + '</strong>' +
+                        '<small class="d-block text-secondary">' + esc(item.detail) + '</small>' +
+                        '</a></li>';
+                }).join('')
+                : '<li><span class="dropdown-item-text text-secondary">Chưa có thông báo mới.</span></li>');
+
+        var dropdown = menu.closest('.dropdown');
+        setBadge(dropdown && dropdown.querySelector('button .badge'), items.length);
+    }
+
+    var loadingSharedAdminData = false;
+
+    async function loadSharedAdminData(options) {
+        if (onLoginPage || loadingSharedAdminData) return;
+        loadingSharedAdminData = true;
+        var silent = Boolean(options && options.silent);
+
+        var menus = document.querySelectorAll('.admin-notifications');
+        if (!silent) {
+            menus.forEach(function (menu) {
+                menu.innerHTML = '<li><span class="dropdown-item-text text-secondary">Đang tải thông báo...</span></li>';
+                var dropdown = menu.closest('.dropdown');
+                var badge = dropdown && dropdown.querySelector('button .badge');
+                if (badge) badge.classList.add('d-none');
+            });
+
+            document.querySelectorAll('.admin-menu a[href="bookings.html"] .badge, .admin-menu a[href="orders.html"] .badge')
+                .forEach(function (badge) { badge.classList.add('d-none'); });
+        }
+
+        try {
+            var results = await Promise.all([
+                api('/api/dashboard/stats?period=7-days'),
+                api('/api/orders?page=1&limit=1'),
+            ]);
+            updateSidebarBadges(results[0], results[1].summary || {});
+            renderNotifications(results[0]);
+        } catch (error) {
+            if (!silent) {
+                menus.forEach(function (menu) {
+                    menu.classList.remove('d-none');
+                    menu.innerHTML = '<li><span class="dropdown-item-text text-danger">Không tải được thông báo.</span></li>';
+                });
+            }
+            console.error('Lỗi tải dữ liệu chung trang admin:', error);
+        } finally {
+            loadingSharedAdminData = false;
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('a[href="login.html"]').forEach(function (a) {
             a.addEventListener('click', clearToken);
+        });
+        loadSharedAdminData();
+
+        // Thông báo và badge phải theo dữ liệu mới mà không buộc admin tải lại trang.
+        window.setInterval(function () {
+            if (!document.hidden) loadSharedAdminData({ silent: true });
+        }, 60000);
+
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden) loadSharedAdminData({ silent: true });
         });
     });
 

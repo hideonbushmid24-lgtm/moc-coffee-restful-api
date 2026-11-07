@@ -101,6 +101,15 @@ document.addEventListener('DOMContentLoaded', function () {
         var el = document.getElementById(id);
         if (el) el.textContent = v;
     }
+    function resetStats() {
+        ['today-order-count', 'new-order-count', 'preparing-order-count', 'payment-order-count']
+            .forEach(function (id) { setText(id, '—'); });
+        if (tabsBox) {
+            Array.prototype.slice.call(tabsBox.querySelectorAll('.badge'))
+                .forEach(function (badge) { badge.textContent = '—'; });
+        }
+    }
+    resetStats();
     function badge(map, key) {
         var s = map[key] || { text: key, cls: 'secondary' };
         return '<span class="badge text-bg-' + s.cls + '">' + A.esc(s.text) + '</span>';
@@ -217,6 +226,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (err) {
             if (seq !== loadSeq) return;
             console.error('Lỗi tải danh sách đơn hàng:', err);
+            resetStats();
             showMessage('Không tải được đơn hàng. Vui lòng thử lại.', 'text-danger');
             A.toast(err.message, 'error');
         }

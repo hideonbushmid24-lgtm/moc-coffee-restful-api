@@ -22,6 +22,17 @@ document.addEventListener('DOMContentLoaded', function () {
     var refreshBtn = A.fresh('refresh-tables-button');
     var all = [];
 
+    function setStat(id, value) {
+        var element = document.getElementById(id);
+        if (element) element.textContent = value;
+    }
+    function resetStats() {
+        ['total-table-count', 'available-table-count', 'occupied-table-count', 'maintenance-table-count']
+            .forEach(function (id) { setStat(id, '—'); });
+    }
+    resetStats();
+    grid.innerHTML = '<div class="col-12 text-center text-secondary py-4">Đang tải sơ đồ bàn...</div>';
+
     // Những thứ API chưa hỗ trợ
     var areaSelect = document.getElementById('table-area-filter');
     if (areaSelect) areaSelect.closest('[class*="col-"]').remove();
@@ -75,6 +86,8 @@ document.addEventListener('DOMContentLoaded', function () {
             render();
         } catch (err) {
             console.error('Lỗi tải sơ đồ bàn:', err);
+            resetStats();
+            grid.innerHTML = '<div class="col-12"><div class="alert alert-danger mb-0">Không tải được sơ đồ bàn.</div></div>';
             A.toast(err.message, 'error');
         }
     }

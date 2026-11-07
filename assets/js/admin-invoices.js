@@ -60,6 +60,11 @@ document.addEventListener('DOMContentLoaded', function () {
         var el = document.getElementById(id);
         if (el) el.textContent = v;
     }
+    function resetStats() {
+        ['today-revenue', 'today-invoice-count', 'pending-invoice-count', 'paid-invoice-count']
+            .forEach(function (id) { setText(id, '—'); });
+    }
+    resetStats();
     function code(o) { return 'HD' + String(o.id).padStart(4, '0'); }
     // Trạng thái hóa đơn suy ra từ đơn: đơn hủy => "Đã hủy", còn lại theo payment_status
     function invStatus(o) {
@@ -144,6 +149,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (err) {
             if (seq !== loadSeq) return;
             console.error('Lỗi tải danh sách hóa đơn:', err);
+            resetStats();
             showMessage('Không tải được hóa đơn. Vui lòng thử lại.', 'text-danger');
             A.toast(err.message, 'error');
         }

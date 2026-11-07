@@ -198,10 +198,22 @@ const listProducts = async (req, res, onlyActive, errorLabel) => {
                 p.image,
                 p.status,
                 p.created_at,
-                p.updated_at
+                p.updated_at,
+                COALESCE(sales.sold_count, 0) AS sold_count
              FROM products AS p
              INNER JOIN categories AS c
                 ON c.id = p.category_id
+             LEFT JOIN (
+                SELECT
+                    oi.product_id,
+                    SUM(oi.quantity) AS sold_count
+                FROM order_items AS oi
+                INNER JOIN orders AS o
+                    ON o.id = oi.order_id
+                WHERE o.status <> 'cancelled'
+                GROUP BY oi.product_id
+             ) AS sales
+                ON sales.product_id = p.id
              ${whereClause}
              ORDER BY p.id DESC`,
             values

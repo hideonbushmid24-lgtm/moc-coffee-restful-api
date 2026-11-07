@@ -18,6 +18,17 @@ document.addEventListener('DOMContentLoaded', function () {
     var resetBtn = A.fresh('reset-booking-filter');
     var all = [];
 
+    function setStat(id, value) {
+        var element = document.getElementById(id);
+        if (element) element.textContent = value;
+    }
+    function resetStats() {
+        ['today-booking-count', 'pending-booking-count', 'confirmed-booking-count', 'cancelled-booking-count']
+            .forEach(function (id) { setStat(id, '—'); });
+    }
+    resetStats();
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-secondary py-4">Đang tải...</td></tr>';
+
     // Dữ liệu API không có khu vực, và chỉ có 3 trạng thái
     var areaSelect = document.getElementById('booking-area-filter');
     if (areaSelect) areaSelect.closest('[class*="col-"]').remove();
@@ -101,6 +112,8 @@ document.addEventListener('DOMContentLoaded', function () {
             render();
         } catch (err) {
             console.error('Lỗi tải danh sách booking:', err);
+            resetStats();
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-4">Không tải được danh sách đặt bàn.</td></tr>';
             A.toast(err.message, 'error');
         }
     }

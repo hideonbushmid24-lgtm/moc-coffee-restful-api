@@ -74,9 +74,12 @@ Mở http://localhost:5000 (khách) và http://localhost:5000/admin/login.html (
 
 ## Kiểm tra nhanh
 ```bash
-npm test
+npm run verify          # kiểm tra mã nguồn + toàn bộ test
+npm run test:coverage   # chạy test và in báo cáo coverage
 ```
-Bộ kiểm thử tự động dùng Node test runner (không cần MySQL, kết nối CSDL được thay bằng bản giả) — 13 ca, là bằng chứng cho mục *Kiểm thử tự động* trong Chương 5 của báo cáo. Kiểm tra database của bạn có đúng cấu trúc không: `npm run check-db`. Danh sách 31 hạng mục kiểm thử thủ công để nộp: `docs/KIEM_THU_THU_CONG.md`.
+Bộ kiểm thử tự động dùng Node test runner (không cần MySQL, kết nối CSDL được thay bằng bản giả). Ngoài 13 ca chức năng trong báo cáo, dự án có thêm các ca bảo mật cho JWT, phân quyền theo database, JSON hỏng và lỗi 404 API. `npm run check` còn phát hiện lỗi cú pháp JavaScript, marker xung đột Git và `id` HTML bị trùng.
+
+Mỗi push/pull request vào `main` cũng tự chạy các bước trên bằng GitHub Actions (`.github/workflows/ci.yml`). Kiểm tra database thật có đúng cấu trúc bằng `npm run check-db`. Danh sách kiểm thử thủ công: `docs/KIEM_THU_THU_CONG.md`; kịch bản trình bày: `docs/CHECKLIST_DEMO.md`.
 
 ## Xử lý lỗi thường gặp
 **Trang admin báo "Lỗi máy chủ", "Lỗi truy vấn cơ sở dữ liệu", "Không thể lấy danh sách đặt bàn"...**
@@ -134,8 +137,9 @@ backend/src/         controllers + routes + upload cho sản phẩm, danh mục,
 backend/uploads/     Ảnh sản phẩm do admin tải lên (không đưa lên git)
 database/            schema.sql và các file migrations
 scripts/             create-admin.js và check-db.js
-tests/               Kiểm tra tự động (node --test tests/smoke.test.js)
-docs/                Tài liệu, bảng kiểm thử thủ công
+tests/               Kiểm tra tự động chức năng và bảo mật (Node test runner)
+docs/                Tài liệu, bảng kiểm thử thủ công và checklist demo
+.github/workflows/   CI tự kiểm tra code, test và coverage trên GitHub
 report/              Báo cáo giữa kỳ 503073 – Restful Web Services (Word + template + đề bài)
 index.html, pages/   Giao diện khách
 admin/               Giao diện quản lý

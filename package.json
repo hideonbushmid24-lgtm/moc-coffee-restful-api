@@ -5,7 +5,10 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node --test tests/smoke.test.js",
+    "check": "node scripts/check-project.js",
+    "test": "node --test",
+    "test:coverage": "node --experimental-test-coverage --test",
+    "verify": "npm run check && npm test",
     "create-admin": "node scripts/create-admin.js",
     "check-db": "node scripts/check-db.js"
   },
